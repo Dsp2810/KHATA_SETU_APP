@@ -1,0 +1,12 @@
+# Backend
+backend/node_modules/
+backend/.env
+
+# Flutter
+khata_setu_app/build/
+khata_setu_app/.dart_tool/
+khata_setu_app/.pub-cache/
+
+# OS
+.DS_Store
+Thumbs.db

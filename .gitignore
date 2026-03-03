@@ -1,0 +1,90 @@
+# ========================
+# KhataSetu Monorepo .gitignore
+# ========================
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# --- IDEs ---
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/*
+!.vscode/launch.json
+!.vscode/settings.json
+.atom/
+
+# --- Environment ---
+.env
+.env.local
+.env.*.local
+
+# ========================
+# Flutter / Dart
+# ========================
+khata_setu_app/build/
+khata_setu_app/.dart_tool/
+khata_setu_app/.flutter-plugins
+khata_setu_app/.flutter-plugins-dependencies
+khata_setu_app/.pub-cache/
+khata_setu_app/.pub/
+khata_setu_app/.packages
+khata_setu_app/coverage/
+**/doc/api/
+**/ios/Flutter/.last_build_id
+*.class
+*.log
+*.pyc
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# Symbolication / Obfuscation
+app.*.symbols
+app.*.map.json
+
+# Android
+khata_setu_app/android/app/debug
+khata_setu_app/android/app/profile
+khata_setu_app/android/app/release
+khata_setu_app/android/.gradle/
+khata_setu_app/android/local.properties
+**/android/**/GeneratedPluginRegistrant.java
+
+# iOS
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/Flutter/Generated.xcconfig
+**/ios/ServiceDefinitions.json
+
+# Generated
+*.g.dart
+*.freezed.dart
+*.mocks.dart
+*.config.dart
+
+# ========================
+# Node.js Backend
+# ========================
+backend/node_modules/
+backend/logs/
+backend/uploads/
+backend/coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ========================
+# Misc
+# ========================
+*.tgz
+*.tar.gz
+*.zip

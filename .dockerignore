@@ -1,0 +1,19 @@
+# Backend
+backend/node_modules/
+backend/coverage/
+backend/logs/
+
+# Flutter
+khata_setu_app/build/
+khata_setu_app/.dart_tool/
+khata_setu_app/coverage/
+khata_setu_app/.pub-cache/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
