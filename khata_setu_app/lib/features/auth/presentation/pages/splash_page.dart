@@ -273,22 +273,14 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                                 ),
                               ),
                             ),
-                            // Icon
-                            ShaderMask(
-                              shaderCallback: (bounds) {
-                                return const LinearGradient(
-                                  colors: [
-                                    AppColors.primary,
-                                    AppColors.primaryDark,
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ).createShader(bounds);
-                              },
-                              child: const Icon(
-                                Icons.menu_book_rounded,
-                                size: 64,
-                                color: AppColors.white,
+                            // Logo
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: Image.asset(
+                                'assets/logo.png',
+                                width: 80,
+                                height: 80,
+                                fit: BoxFit.contain,
                               ),
                             ),
                           ],
