@@ -30,18 +30,22 @@ class CustomerBloc extends Bloc<CustomerEvent, CustomerState> {
         events.debounceTime(const Duration(milliseconds: 300)).flatMap(mapper);
   }
 
-  void _onLoad(LoadCustomers event, Emitter<CustomerState> emit) {
+  /// Loads customers from remote API (falls back to local cache).
+  Future<void> _onLoad(
+      LoadCustomers event, Emitter<CustomerState> emit) async {
+    emit(CustomerLoading());
     try {
-      final customers = _repository.getAllCustomers();
+      final customers = await _repository.getAllCustomersAsync();
       emit(CustomerLoaded(customers: customers));
     } catch (e) {
       emit(CustomerError(mapExceptionToFailure(e).message));
     }
   }
 
-  void _onSearch(SearchCustomers event, Emitter<CustomerState> emit) {
+  Future<void> _onSearch(
+      SearchCustomers event, Emitter<CustomerState> emit) async {
     try {
-      final customers = _repository.searchCustomers(event.query);
+      final customers = await _repository.searchCustomersAsync(event.query);
       emit(CustomerLoaded(customers: customers, searchQuery: event.query));
     } catch (e) {
       emit(CustomerError(mapExceptionToFailure(e).message));
@@ -49,6 +53,7 @@ class CustomerBloc extends Bloc<CustomerEvent, CustomerState> {
   }
 
   Future<void> _onAdd(AddCustomer event, Emitter<CustomerState> emit) async {
+    emit(CustomerLoading());
     try {
       final customer = await _repository.addCustomer(
         name: event.name,
@@ -59,8 +64,8 @@ class CustomerBloc extends Bloc<CustomerEvent, CustomerState> {
         avatar: event.avatar,
       );
       emit(CustomerAdded(customer));
-      // Reload list
-      final customers = _repository.getAllCustomers();
+      // Reload list from remote to get server-synced data
+      final customers = await _repository.getAllCustomersAsync();
       emit(CustomerLoaded(customers: customers));
     } catch (e) {
       emit(CustomerError(mapExceptionToFailure(e).message));
@@ -84,7 +89,8 @@ class CustomerBloc extends Bloc<CustomerEvent, CustomerState> {
       if (event.notes != null) updated.notes = event.notes;
 
       await _repository.updateCustomer(updated);
-      final customers = _repository.getAllCustomers();
+      // Reload from remote to get server-authoritative data
+      final customers = await _repository.getAllCustomersAsync();
       emit(CustomerLoaded(customers: customers));
     } catch (e) {
       emit(CustomerError(mapExceptionToFailure(e).message));
@@ -93,17 +99,25 @@ class CustomerBloc extends Bloc<CustomerEvent, CustomerState> {
 
   Future<void> _onDelete(
       DeleteCustomer event, Emitter<CustomerState> emit) async {
+    emit(CustomerLoading());
     try {
       await _repository.deleteCustomer(event.id);
-      final customers = _repository.getAllCustomers();
+      // Reload from remote so UI reflects server state
+      final customers = await _repository.getAllCustomersAsync();
       emit(CustomerLoaded(customers: customers));
     } catch (e) {
       emit(CustomerError(mapExceptionToFailure(e).message));
     }
   }
 
-  void _onRefresh(RefreshCustomers event, Emitter<CustomerState> emit) {
-    final customers = _repository.getAllCustomers();
-    emit(CustomerLoaded(customers: customers));
+  /// Refresh customers from remote API (e.g., after a transaction changes balances)
+  Future<void> _onRefresh(
+      RefreshCustomers event, Emitter<CustomerState> emit) async {
+    try {
+      final customers = await _repository.getAllCustomersAsync();
+      emit(CustomerLoaded(customers: customers));
+    } catch (e) {
+      emit(CustomerError(mapExceptionToFailure(e).message));
+    }
   }
 }

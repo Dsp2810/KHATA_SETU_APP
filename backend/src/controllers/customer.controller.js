@@ -1,4 +1,4 @@
-const { Customer } = require('../models');
+const { Customer, LedgerEntry } = require('../models');
 const { asyncHandler, AppError } = require('../middleware');
 const { auditLog } = require('../utils');
 const mongoose = require('mongoose');
@@ -47,11 +47,15 @@ const getCustomers = asyncHandler(async (req, res) => {
     limit,
   } = req.query;
   
-  // Build query
+  // Build query — default to active customers only
   const query = { shopId };
   
-  if (typeof isActive === 'boolean') {
-    query.isActive = isActive;
+  if (isActive !== undefined) {
+    // Query params are strings; convert to boolean
+    query.isActive = isActive === 'true' || isActive === true;
+  } else {
+    // By default only show active customers
+    query.isActive = true;
   }
   
   if (search) {
@@ -164,15 +168,24 @@ const getCustomer = asyncHandler(async (req, res) => {
 });
 
 /**
- * Update a customer
+ * Update a customer (whitelisted fields only)
  * PATCH /api/shops/:shopId/customers/:customerId
  */
 const updateCustomer = asyncHandler(async (req, res) => {
   const { shopId, customerId } = req.params;
   
+  // Only allow safe fields — prevent injection of currentBalance, trustScore, etc.
+  const allowedFields = ['name', 'phone', 'email', 'address', 'creditLimit', 'avatar', 'tags', 'notes'];
+  const updates = {};
+  allowedFields.forEach(field => {
+    if (req.body[field] !== undefined) {
+      updates[field] = req.body[field];
+    }
+  });
+  
   const customer = await Customer.findOneAndUpdate(
     { _id: customerId, shopId },
-    req.body,
+    updates,
     { new: true, runValidators: true }
   );
   
@@ -194,36 +207,63 @@ const updateCustomer = asyncHandler(async (req, res) => {
 });
 
 /**
- * Delete a customer (soft delete)
+ * Delete a customer (soft delete with cascade)
  * DELETE /api/shops/:shopId/customers/:customerId
  */
 const deleteCustomer = asyncHandler(async (req, res) => {
   const { shopId, customerId } = req.params;
   
-  const customer = await Customer.findOne({ _id: customerId, shopId });
+  const session = await mongoose.startSession();
+  session.startTransaction();
   
-  if (!customer) {
-    throw new AppError('Customer not found', 404, 'CUSTOMER_NOT_FOUND');
-  }
-  
-  // Check if customer has outstanding balance
-  if (customer.currentBalance !== 0) {
-    throw new AppError(
-      'Cannot delete customer with outstanding balance',
-      400,
-      'BALANCE_EXISTS'
+  try {
+    const customer = await Customer.findOne({ _id: customerId, shopId }).session(session);
+    
+    if (!customer) {
+      throw new AppError('Customer not found', 404, 'CUSTOMER_NOT_FOUND');
+    }
+    
+    // Float-safe zero check (tolerance of ₹0.01)
+    if (Math.abs(customer.currentBalance) > 0.01) {
+      throw new AppError(
+        'Cannot delete customer with outstanding balance',
+        400,
+        'BALANCE_EXISTS'
+      );
+    }
+    
+    // Soft-delete the customer
+    customer.isActive = false;
+    await customer.save({ session });
+    
+    // Cascade: soft-delete all associated ledger entries
+    await LedgerEntry.updateMany(
+      { customerId: customer._id, shopId, isDeleted: false },
+      {
+        $set: {
+          isDeleted: true,
+          deletedAt: new Date(),
+          deletedBy: req.userId,
+          deletionReason: 'Customer deleted',
+        },
+      },
+      { session }
     );
+    
+    await session.commitTransaction();
+    
+    auditLog('CUSTOMER_DELETED', req.userId, { customerId, shopId });
+    
+    res.json({
+      success: true,
+      message: 'Customer deleted successfully',
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    session.endSession();
   }
-  
-  customer.isActive = false;
-  await customer.save();
-  
-  auditLog('CUSTOMER_DELETED', req.userId, { customerId, shopId });
-  
-  res.json({
-    success: true,
-    message: 'Customer deleted successfully',
-  });
 });
 
 /**

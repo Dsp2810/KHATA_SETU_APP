@@ -59,8 +59,10 @@ app.get('/', (req, res) => {
 app.get('/health', (req, res) => {
   res.status(200).json({
     success: true,
-    message: 'Server is healthy',
+    message: 'Server is running',
     timestamp: new Date().toISOString(),
+    uptime: `${Math.floor(process.uptime())}s`,
+    environment: config.nodeEnv || 'development',
   });
 });
 

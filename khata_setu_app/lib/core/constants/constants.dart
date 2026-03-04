@@ -26,10 +26,10 @@ class ApiConstants {
 
   static bool get isProduction => _env == 'prod';
 
-  // Timeouts
-  static const Duration connectTimeout = Duration(seconds: 30);
-  static const Duration receiveTimeout = Duration(seconds: 30);
-  static const Duration sendTimeout = Duration(seconds: 30);
+  // Timeouts — 60s to handle Render free-tier cold starts (~30-50s)
+  static const Duration connectTimeout = Duration(seconds: 60);
+  static const Duration receiveTimeout = Duration(seconds: 60);
+  static const Duration sendTimeout = Duration(seconds: 60);
 
   // Headers
   static const String contentType = 'application/json';

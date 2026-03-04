@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
@@ -9,6 +11,10 @@ import 'transaction_state.dart';
 
 class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
   UdharRepository _repository;
+
+  /// Callback to notify CustomerBloc to refresh after transaction changes.
+  /// Set by the widget tree (e.g., via DI or in the page that provides both BLoCs).
+  VoidCallback? onTransactionChanged;
 
   TransactionBloc(this._repository) : super(TransactionInitial()) {
     on<LoadTransactions>(_onLoadCustomerTransactions);
@@ -69,6 +75,7 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
 
   Future<void> _onAddCredit(
       AddCredit event, Emitter<TransactionState> emit) async {
+    emit(TransactionLoading());
     try {
       final txn = await _repository.addCredit(
         customerId: event.customerId,
@@ -83,6 +90,9 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
 
       // Reload the customer timeline
       _emitReload(event.customerId, emit);
+
+      // Notify CustomerBloc to refresh (balance changed)
+      onTransactionChanged?.call();
     } catch (e) {
       emit(TransactionError(mapExceptionToFailure(e).message));
     }
@@ -90,6 +100,7 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
 
   Future<void> _onAddPayment(
       AddPayment event, Emitter<TransactionState> emit) async {
+    emit(TransactionLoading());
     try {
       final txn = await _repository.addPayment(
         customerId: event.customerId,
@@ -104,6 +115,9 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
 
       // Reload the customer timeline
       _emitReload(event.customerId, emit);
+
+      // Notify CustomerBloc to refresh (balance changed)
+      onTransactionChanged?.call();
     } catch (e) {
       emit(TransactionError(mapExceptionToFailure(e).message));
     }
@@ -111,11 +125,14 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
 
   Future<void> _onUndo(
       UndoLastTransaction event, Emitter<TransactionState> emit) async {
+    emit(TransactionLoading());
     try {
       final undone = await _repository.undoLastTransaction(event.customerId);
       if (undone != null) {
         emit(TransactionUndone(undone));
         _emitReload(event.customerId, emit);
+        // Notify CustomerBloc to refresh (balance changed)
+        onTransactionChanged?.call();
       } else {
         emit(const TransactionError('No transaction to undo'));
       }

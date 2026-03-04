@@ -105,10 +105,10 @@ class UdharRepository {
   }
 
   Future<void> updateCustomer(CustomerModel customer) async {
-    // Try remote
+    // Try remote — use the server's response to keep balance in sync
     if (_hasRemote) {
       try {
-        await _remote!.updateCustomer(customer.id, {
+        final remoteCustomer = await _remote!.updateCustomer(customer.id, {
           'name': customer.name,
           'phone': customer.phone,
           if (customer.email != null) 'email': customer.email,
@@ -116,7 +116,9 @@ class UdharRepository {
           'creditLimit': customer.creditLimit,
           if (customer.notes != null) 'notes': customer.notes,
         });
-        customer.synced = true;
+        // Save the server-returned model (has authoritative balance)
+        await _local.saveCustomer(remoteCustomer);
+        return;
       } catch (e) {
         AppLogger.warning('Remote update failed: $e');
         customer.synced = false;
@@ -204,7 +206,7 @@ class UdharRepository {
       try {
         final remoteTxn = await _remote!.createLedgerEntry(
           customerId: customerId,
-          type: 'payment',
+          type: 'debit', // Backend enum: 'credit' | 'debit'
           amount: amount,
           description: description ?? 'Payment received',
           paymentMode: paymentModeStr,
@@ -245,7 +247,8 @@ class UdharRepository {
     final transactions = _local.getTransactionsForCustomer(customerId);
     if (transactions.isEmpty) return null;
 
-    final lastTxn = transactions.last;
+    // Use .first because list is sorted newest-first (desc by timestamp)
+    final lastTxn = transactions.first;
 
     if (_hasRemote) {
       try {

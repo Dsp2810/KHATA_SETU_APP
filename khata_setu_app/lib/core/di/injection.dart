@@ -14,6 +14,7 @@ import '../data/datasources/udhar_remote_datasource.dart';
 import '../data/repositories/udhar_repository.dart';
 import '../../features/settings/presentation/bloc/theme_cubit.dart';
 import '../../features/customers/presentation/bloc/customer_bloc.dart';
+import '../../features/customers/presentation/bloc/customer_event.dart';
 import '../../features/ledger/presentation/bloc/transaction_bloc.dart';
 import '../data/datasources/product_local_datasource.dart';
 import '../data/datasources/product_remote_datasource.dart';
@@ -187,6 +188,11 @@ Future<void> registerRemoteDatasource(String shopId) async {
   getIt<CustomerBloc>().updateRepository(udharRepo);
   getIt<TransactionBloc>().updateRepository(udharRepo);
 
+  // Wire cross-bloc refresh: when TransactionBloc mutates data, refresh CustomerBloc
+  getIt<TransactionBloc>().onTransactionChanged = () {
+    getIt<CustomerBloc>().add(RefreshCustomers());
+  };
+
   // Sync Service — start periodic background sync
   if (getIt.isRegistered<SyncService>()) {
     getIt<SyncService>().dispose();
@@ -258,7 +264,14 @@ Future<void> registerRemoteDatasource(String shopId) async {
 Future<void> _registerLedgerDependencies() async {
   // TransactionBloc — Singleton, shares the same UdharRepository
   getIt.registerLazySingleton<TransactionBloc>(
-    () => TransactionBloc(getIt<UdharRepository>()),
+    () {
+      final bloc = TransactionBloc(getIt<UdharRepository>());
+      // Wire cross-bloc: when transactions change, refresh customer list
+      bloc.onTransactionChanged = () {
+        getIt<CustomerBloc>().add(RefreshCustomers());
+      };
+      return bloc;
+    },
   );
 }
 

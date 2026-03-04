@@ -4,56 +4,88 @@ const { auditLog } = require('../utils');
 const mongoose = require('mongoose');
 
 /**
- * Create a new ledger entry
+ * Create a new ledger entry (atomic with MongoDB session)
  * POST /api/shops/:shopId/ledger
  */
 const createLedgerEntry = asyncHandler(async (req, res) => {
   const { shopId } = req.params;
-  const entryData = {
-    ...req.body,
-    shopId,
-    createdBy: req.userId,
-  };
-  
-  // Verify customer exists
-  const customer = await Customer.findOne({
-    _id: req.body.customerId,
-    shopId,
-  });
-  
-  if (!customer) {
-    throw new AppError('Customer not found', 404, 'CUSTOMER_NOT_FOUND');
-  }
-  
-  // Check credit limit for credit entries
-  if (req.body.type === 'credit') {
-    const newBalance = customer.currentBalance + req.body.amount;
-    if (customer.creditLimit > 0 && newBalance > customer.creditLimit) {
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    // Fetch customer inside session for consistency
+    const customer = await Customer.findOne({
+      _id: req.body.customerId,
+      shopId,
+      isActive: true,
+    }).session(session);
+
+    if (!customer) {
+      throw new AppError('Customer not found', 404, 'CUSTOMER_NOT_FOUND');
+    }
+
+    // Calculate direction: credit increases balance, debit decreases
+    const direction = req.body.type === 'credit' ? 1 : -1;
+    const amount = req.body.amount;
+    const newBalance = customer.currentBalance + direction * amount;
+
+    // Check credit limit for credit entries
+    if (req.body.type === 'credit' && customer.creditLimit > 0 && newBalance > customer.creditLimit) {
       throw new AppError(
         `Credit limit exceeded. Customer limit: ₹${customer.creditLimit}, Current balance: ₹${customer.currentBalance}`,
         400,
         'CREDIT_LIMIT_EXCEEDED'
       );
     }
+
+    // Atomically update customer balance with $inc to avoid race conditions
+    await Customer.findByIdAndUpdate(
+      customer._id,
+      {
+        $inc: { currentBalance: direction * amount },
+        $set: { lastTransactionAt: new Date() },
+      },
+      { session }
+    );
+
+    // Create ledger entry with pre-computed balanceAfter
+    const [entry] = await LedgerEntry.create(
+      [
+        {
+          ...req.body,
+          shopId,
+          createdBy: req.userId,
+          balanceAfter: newBalance,
+        },
+      ],
+      { session }
+    );
+
+    await session.commitTransaction();
+
+    // Populate for response (outside session)
+    await entry.populate('customerId', 'name phone currentBalance');
+
+    auditLog('LEDGER_ENTRY_CREATED', req.userId, {
+      entryId: entry._id,
+      shopId,
+      type: entry.type,
+      amount: entry.amount,
+      balanceAfter: newBalance,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: `${entry.type === 'credit' ? 'Credit' : 'Payment'} recorded successfully`,
+      data: { entry },
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    session.endSession();
   }
-  
-  const entry = await LedgerEntry.create(entryData);
-  
-  // Populate for response
-  await entry.populate('customerId', 'name phone currentBalance');
-  
-  auditLog('LEDGER_ENTRY_CREATED', req.userId, {
-    entryId: entry._id,
-    shopId,
-    type: entry.type,
-    amount: entry.amount,
-  });
-  
-  res.status(201).json({
-    success: true,
-    message: `${entry.type === 'credit' ? 'Credit' : 'Payment'} recorded successfully`,
-    data: { entry },
-  });
 });
 
 /**
