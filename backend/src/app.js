@@ -12,30 +12,50 @@ const routes = require('./routes');
 
 const app = express();
 
-// Security middleware
+/* ===============================
+   Security Middleware
+=============================== */
 app.use(helmet());
 
-// CORS
-app.use(cors({
-  origin: config.frontendUrl === '*' ? '*' : config.frontendUrl,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  credentials: config.frontendUrl !== '*',
-  maxAge: 86400, // 24 hours
-}));
+/* ===============================
+   CORS
+=============================== */
+app.use(
+  cors({
+    origin: config.frontendUrl === '*' ? '*' : config.frontendUrl,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    credentials: config.frontendUrl !== '*',
+    maxAge: 86400,
+  })
+);
 
-// Request logging
+/* ===============================
+   Logging
+=============================== */
 if (config.nodeEnv !== 'test') {
   app.use(morgan('combined'));
 }
 
-// Body parsing
+/* ===============================
+   Body Parsing
+=============================== */
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Rate limiting
-app.use('/api/', apiLimiter);
+/* ===============================
+   Root Route (IMPORTANT for Render)
+=============================== */
+app.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: '🚀 KhataSetu API is running',
+    environment: config.nodeEnv,
+  });
+});
 
-// Health check
+/* ===============================
+   Health Check
+=============================== */
 app.get('/health', (req, res) => {
   res.status(200).json({
     success: true,
@@ -44,10 +64,19 @@ app.get('/health', (req, res) => {
   });
 });
 
-// API routes - use centralized route aggregator
+/* ===============================
+   Rate Limiting
+=============================== */
+app.use('/api/', apiLimiter);
+
+/* ===============================
+   API Routes
+=============================== */
 app.use('/api/v1', routes);
 
-// 404 handler
+/* ===============================
+   404 Handler
+=============================== */
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -58,7 +87,9 @@ app.use((req, res) => {
   });
 });
 
-// Global error handler
+/* ===============================
+   Global Error Handler
+=============================== */
 app.use(errorHandler);
 
 module.exports = app;
