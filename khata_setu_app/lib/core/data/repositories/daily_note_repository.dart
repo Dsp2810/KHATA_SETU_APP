@@ -1,6 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 
+import '../../utils/app_logger.dart';
 import '../datasources/daily_note_local_datasource.dart';
 import '../datasources/daily_note_remote_datasource.dart';
 import '../models/daily_note_model.dart';
@@ -43,7 +43,7 @@ class DailyNoteRepository {
 
         return result;
       } catch (e) {
-        debugPrint('DailyNoteRepository.getNotes remote failed: $e');
+        AppLogger.warning('DailyNoteRepository.getNotes remote failed: $e');
         // Fall through to local
       }
     }
@@ -71,7 +71,7 @@ class DailyNoteRepository {
         await _local.saveDailyNote(note);
         return note;
       } catch (e) {
-        debugPrint('DailyNoteRepository.getNoteById remote failed: $e');
+        AppLogger.warning('DailyNoteRepository.getNoteById remote failed: $e');
       }
     }
     return _local.getDailyNoteById(id);
@@ -85,7 +85,7 @@ class DailyNoteRepository {
         await _local.saveAll(notes);
         return notes;
       } catch (e) {
-        debugPrint('DailyNoteRepository.getTodayNotes remote failed: $e');
+        AppLogger.warning('DailyNoteRepository.getTodayNotes remote failed: $e');
       }
     }
 
@@ -109,7 +109,7 @@ class DailyNoteRepository {
           endDate: endDate?.toIso8601String(),
         );
       } catch (e) {
-        debugPrint('DailyNoteRepository.getSummary remote failed: $e');
+        AppLogger.warning('DailyNoteRepository.getSummary remote failed: $e');
       }
     }
 
@@ -160,7 +160,7 @@ class DailyNoteRepository {
         await _local.saveDailyNote(created);
         return created;
       } catch (e) {
-        debugPrint('DailyNoteRepository.createNote remote failed: $e');
+        AppLogger.warning('DailyNoteRepository.createNote remote failed: $e');
         // Save locally as unsynced
         final unsynced = prepared.copyWith(synced: false);
         await _local.saveDailyNote(unsynced);
@@ -194,7 +194,7 @@ class DailyNoteRepository {
         await _local.saveDailyNote(updated);
         return updated;
       } catch (e) {
-        debugPrint('DailyNoteRepository.updateNote remote failed: $e');
+        AppLogger.warning('DailyNoteRepository.updateNote remote failed: $e');
       }
     }
 
@@ -223,7 +223,7 @@ class DailyNoteRepository {
       try {
         await _remote.deleteNote(noteId);
       } catch (e) {
-        debugPrint('DailyNoteRepository.deleteNote remote failed: $e');
+        AppLogger.warning('DailyNoteRepository.deleteNote remote failed: $e');
       }
     }
     await _local.softDeleteNote(noteId);
@@ -239,7 +239,7 @@ class DailyNoteRepository {
         await _local.saveDailyNote(completed);
         return completed;
       } catch (e) {
-        debugPrint('DailyNoteRepository.completeNote remote failed: $e');
+        AppLogger.warning('DailyNoteRepository.completeNote remote failed: $e');
       }
     }
 
@@ -265,7 +265,7 @@ class DailyNoteRepository {
         await _local.bulkComplete(noteIds);
         return result;
       } catch (e) {
-        debugPrint('DailyNoteRepository.bulkComplete remote failed: $e');
+        AppLogger.warning('DailyNoteRepository.bulkComplete remote failed: $e');
       }
     }
 
@@ -286,7 +286,7 @@ class DailyNoteRepository {
         await _local.bulkSoftDelete(noteIds);
         return result;
       } catch (e) {
-        debugPrint('DailyNoteRepository.bulkDelete remote failed: $e');
+        AppLogger.warning('DailyNoteRepository.bulkDelete remote failed: $e');
       }
     }
 

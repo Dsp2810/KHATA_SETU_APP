@@ -22,8 +22,6 @@ import '../../../../core/services/sync_service.dart';
 import '../../../../core/services/connectivity_service.dart';
 import '../bloc/theme_cubit.dart';
 import '../bloc/language_cubit.dart';
-import '../../../auth/presentation/bloc/biometric_cubit.dart';
-import '../../../../core/services/biometric_service.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -44,8 +42,6 @@ class _SettingsPageState extends State<SettingsPage> {
     _localStorage = getIt<LocalStorageService>();
     _notificationsEnabled = _localStorage.getBool('notifications_enabled') ?? true;
     _loadUserProfile();
-    // Initialize biometric status check
-    context.read<BiometricCubit>().checkBiometricStatus();
   }
 
   Future<void> _loadUserProfile() async {
@@ -207,7 +203,6 @@ class _SettingsPageState extends State<SettingsPage> {
                       index: 5,
                       child: _buildSection(
                           context.l10n.security, Icons.shield_outlined, AppColors.success, [
-                        _buildBiometricTile(),
                         _buildSettingsTile(
                           icon: Icons.lock_outline_rounded,
                           title: context.l10n.changePin,
@@ -263,7 +258,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             );
                             try {
                               await getIt<SyncService>().syncAll();
-                              if (mounted) {
+                              if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(context.l10n.syncComplete),
@@ -274,7 +269,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                 setState(() {});
                               }
                             } catch (e) {
-                              if (mounted) {
+                              if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(context.l10n.syncFailed),
@@ -376,7 +371,7 @@ class _SettingsPageState extends State<SettingsPage> {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.12),
+                  color: color.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(icon, color: color, size: 18),
@@ -392,69 +387,6 @@ class _SettingsPageState extends State<SettingsPage> {
           ...children,
         ],
       ),
-    );
-  }
-
-  // ─── Biometric Tile ───
-  Widget _buildBiometricTile() {
-    return BlocConsumer<BiometricCubit, BiometricState>(
-      listener: (context, state) {
-        if (state is BiometricAuthFailed) {
-          final l10n = context.l10n;
-          String message;
-          switch (state.result) {
-            case BiometricResult.noHardware:
-              message = l10n.biometricNoHardware;
-            case BiometricResult.notEnrolled:
-              message = l10n.biometricNotEnrolled;
-            case BiometricResult.lockedOut:
-              message = l10n.biometricLockedOut;
-            case BiometricResult.permanentlyLockedOut:
-              message = l10n.biometricPermanentlyLocked;
-            case BiometricResult.cancelled:
-              message = l10n.biometricCancelled;
-            default:
-              message = l10n.biometricFailed;
-          }
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
-          );
-        }
-      },
-      builder: (context, state) {
-        final isEnabled = state is BiometricEnabled;
-        final isAvailable = state is BiometricAvailable || state is BiometricEnabled;
-        final isUnavailable = state is BiometricUnavailable;
-
-        String subtitle = context.l10n.biometricLockSubtitle;
-        if (isUnavailable) {
-          subtitle = state.reason == 'noHardware'
-              ? context.l10n.biometricNoHardware
-              : context.l10n.biometricNotEnrolled;
-        }
-
-        return _buildSwitchTile(
-          icon: Icons.fingerprint_rounded,
-          title: context.l10n.biometricLock,
-          subtitle: subtitle,
-          value: isEnabled,
-          onChanged: isAvailable
-              ? (v) {
-                  context.read<BiometricCubit>().toggleBiometric(
-                    v,
-                    localizedReason: context.l10n.biometricEnableReason,
-                  );
-                }
-              : (_) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(context.l10n.biometricUnavailable),
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                },
-        );
-      },
     );
   }
 
@@ -518,7 +450,7 @@ class _SettingsPageState extends State<SettingsPage> {
             borderRadius: BorderRadius.circular(AppRadius.md),
             border: Border.all(
                 color: isSelected
-                    ? AppColors.primary.withOpacity(0.3)
+                    ? AppColors.primary.withValues(alpha: 0.3)
                     : context.glassBorderColor),
           ),
           child: Column(
@@ -568,12 +500,12 @@ class _SettingsPageState extends State<SettingsPage> {
             margin: const EdgeInsets.only(bottom: AppSpacing.xxs),
             decoration: BoxDecoration(
               color: isSelected
-                  ? AppColors.primary.withOpacity(0.08)
+                  ? AppColors.primary.withValues(alpha: 0.08)
                   : Colors.transparent,
               borderRadius: BorderRadius.circular(AppRadius.sm),
               border: Border.all(
                   color: isSelected
-                      ? AppColors.primary.withOpacity(0.3)
+                      ? AppColors.primary.withValues(alpha: 0.3)
                       : Colors.transparent),
             ),
             child: Row(
@@ -664,7 +596,7 @@ class _SettingsPageState extends State<SettingsPage> {
           Switch.adaptive(
             value: value,
             onChanged: onChanged,
-            activeColor: AppColors.primary,
+            activeTrackColor: AppColors.primary,
           ),
         ],
       ),

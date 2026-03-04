@@ -1,10 +1,10 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rxdart/rxdart.dart';
 
 import '../../../../core/data/models/product_model.dart';
 import '../../../../core/data/repositories/product_repository.dart';
 import '../../../../core/error/error_handler.dart';
+import '../../../../core/utils/app_logger.dart';
 import 'inventory_event.dart';
 import 'inventory_state.dart';
 
@@ -65,7 +65,7 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
         summary: summary,
       ));
     } catch (e) {
-      debugPrint('InventoryBloc._onLoadProducts error: $e');
+      AppLogger.error('InventoryBloc._onLoadProducts error: $e');
       emit(InventoryError(mapExceptionToFailure(e).message));
     }
   }

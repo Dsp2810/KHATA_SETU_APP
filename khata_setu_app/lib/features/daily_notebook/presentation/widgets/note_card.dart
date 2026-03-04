@@ -244,7 +244,6 @@ class NoteCard extends StatelessWidget {
     if (!isSelectMode && note.isPending) {
       card = Dismissible(
         key: Key('note_${note.id}'),
-        child: card,
         background: Container(
           alignment: Alignment.centerLeft,
           padding: const EdgeInsets.only(left: AppSpacing.lg),
@@ -288,6 +287,7 @@ class NoteCard extends StatelessWidget {
           }
           return false; // Don't actually dismiss — let BLoC handle it
         },
+        child: card,
       );
     }
 

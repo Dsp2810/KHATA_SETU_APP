@@ -49,7 +49,7 @@ class CustomerCard extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.black.withOpacity(context.isDark ? 0.2 : 0.1),
+              color: AppColors.black.withValues(alpha: context.isDark ? 0.2 : 0.1),
               blurRadius: 10,
               offset: const Offset(0, 2),
             ),
@@ -159,7 +159,7 @@ class CustomerCard extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.primary.withOpacity(0.8),
+            AppColors.primary.withValues(alpha: 0.8),
             AppColors.primaryDark,
           ],
           begin: Alignment.topLeft,
@@ -200,7 +200,7 @@ class CustomerCard extends StatelessWidget {
         vertical: 2,
       ),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppRadius.xs),
       ),
       child: Text(
@@ -220,7 +220,7 @@ class CustomerCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(AppRadius.xs),
         ),
         child: Icon(icon, color: color, size: 16),

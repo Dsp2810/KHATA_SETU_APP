@@ -918,7 +918,7 @@ class _RipplePainter extends CustomPainter {
       final opacity = (1 - rippleProgress) * 0.3;
 
       final paint = Paint()
-        ..color = color.withOpacity(opacity)
+        ..color = color.withValues(alpha: opacity)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2;
 
@@ -1100,7 +1100,7 @@ class _AnimatedQuantitySelectorState extends State<AnimatedQuantitySelector> {
         child: Icon(
           icon,
           size: 20,
-          color: enabled ? color : color.withOpacity(0.3),
+          color: enabled ? color : color.withValues(alpha: 0.3),
         ),
       ),
     );

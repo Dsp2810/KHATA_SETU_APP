@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -277,6 +276,8 @@ class _SmartBillingPageState extends State<SmartBillingPage>
       final shopName = await secureStorage.read('shop_name') ?? 'My Shop';
       final shopPhone = await secureStorage.read('user_phone') ?? '';
 
+      if (!mounted) return;
+
       final bytes = await PdfReportService.generateBill(
         shopName: shopName,
         shopAddress: '',
@@ -313,6 +314,7 @@ class _SmartBillingPageState extends State<SmartBillingPage>
         _showSuccessDialog(bytes);
       }
     } catch (e) {
+      if (!mounted) return;
       _showErrorSnackBar(context.l10n.errorGeneratingBill(e.toString()));
     } finally {
       if (mounted) {
@@ -366,7 +368,7 @@ class _SmartBillingPageState extends State<SmartBillingPage>
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.success.withOpacity(0.3),
+                        color: AppColors.success.withValues(alpha: 0.3),
                         blurRadius: 20,
                         offset: const Offset(0, 6),
                       ),
@@ -390,7 +392,7 @@ class _SmartBillingPageState extends State<SmartBillingPage>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -429,7 +431,7 @@ class _SmartBillingPageState extends State<SmartBillingPage>
                     child: ElevatedButton.icon(
                       onPressed: () async {
                         await PdfReportService.printReport(Uint8List.fromList(pdfBytes));
-                        if (mounted) Navigator.pop(ctx);
+                        if (ctx.mounted) Navigator.pop(ctx);
                         _resetBill();
                       },
                       icon: const Icon(Icons.print),
@@ -599,8 +601,8 @@ class _SmartBillingPageState extends State<SmartBillingPage>
             gradient: _selectedCustomer != null
                 ? LinearGradient(
                     colors: [
-                      AppColors.primary.withOpacity(0.1),
-                      AppColors.primaryLight.withOpacity(0.05),
+                      AppColors.primary.withValues(alpha: 0.1),
+                      AppColors.primaryLight.withValues(alpha: 0.05),
                     ],
                   )
                 : null,
@@ -610,7 +612,7 @@ class _SmartBillingPageState extends State<SmartBillingPage>
             borderRadius: BorderRadius.circular(AppRadius.md),
             border: Border.all(
               color: _selectedCustomer != null
-                  ? AppColors.primary.withOpacity(0.3)
+                  ? AppColors.primary.withValues(alpha: 0.3)
                   : AppColors.grey300,
             ),
           ),
@@ -666,8 +668,8 @@ class _SmartBillingPageState extends State<SmartBillingPage>
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
                               color: _selectedCustomer!.currentBalance > 0
-                                  ? AppColors.error.withOpacity(0.1)
-                                  : AppColors.success.withOpacity(0.1),
+                                  ? AppColors.error.withValues(alpha: 0.1)
+                                  : AppColors.success.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Text(
@@ -906,7 +908,7 @@ class _SmartBillingPageState extends State<SmartBillingPage>
           boxShadow: [
             if (hasQuantity)
               BoxShadow(
-                color: AppColors.primary.withOpacity(0.2),
+                color: AppColors.primary.withValues(alpha: 0.2),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -924,7 +926,7 @@ class _SmartBillingPageState extends State<SmartBillingPage>
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.1),
+                          color: AppColors.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(item.icon, color: AppColors.primary, size: 20),
@@ -1016,7 +1018,7 @@ class _SmartBillingPageState extends State<SmartBillingPage>
         color: context.cardColor,
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(0.1),
+            color: AppColors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -1032,7 +1034,7 @@ class _SmartBillingPageState extends State<SmartBillingPage>
                 padding: const EdgeInsets.all(AppSpacing.sm),
                 margin: const EdgeInsets.only(bottom: AppSpacing.sm),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
                 child: Row(
@@ -1079,7 +1081,7 @@ class _SmartBillingPageState extends State<SmartBillingPage>
                       borderRadius: BorderRadius.circular(AppRadius.md),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.success.withOpacity(0.4),
+                          color: AppColors.success.withValues(alpha: 0.4),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -1224,7 +1226,7 @@ class _SmartBillingPageState extends State<SmartBillingPage>
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: AppColors.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(item.icon, color: AppColors.primary, size: 24),

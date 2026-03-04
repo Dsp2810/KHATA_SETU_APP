@@ -135,7 +135,7 @@ class _AddProductPageState extends State<AddProductPage>
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: AppColors.success.withOpacity(0.1),
+                    color: AppColors.success.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
@@ -345,7 +345,7 @@ class _AddProductPageState extends State<AddProductPage>
           color: context.surfaceColor,
           borderRadius: BorderRadius.circular(AppRadius.lg),
           border: Border.all(
-            color: AppColors.primary.withOpacity(0.3),
+            color: AppColors.primary.withValues(alpha: 0.3),
             width: 2,
             strokeAlign: BorderSide.strokeAlignCenter,
           ),
@@ -356,7 +356,7 @@ class _AddProductPageState extends State<AddProductPage>
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -411,7 +411,7 @@ class _AddProductPageState extends State<AddProductPage>
                 decoration: BoxDecoration(
                   color: isSelected
                       ? AppColors.secondary
-                      : AppColors.secondary.withOpacity(0.06),
+                      : AppColors.secondary.withValues(alpha: 0.06),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: isSelected
@@ -532,15 +532,15 @@ class _AddProductPageState extends State<AddProductPage>
                 gradient: LinearGradient(
                   colors: [
                     (_profit >= 0 ? AppColors.success : AppColors.error)
-                        .withOpacity(0.05),
+                        .withValues(alpha: 0.05),
                     (_profit >= 0 ? AppColors.success : AppColors.error)
-                        .withOpacity(0.12),
+                        .withValues(alpha: 0.12),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(AppRadius.md),
                 border: Border.all(
                   color: (_profit >= 0 ? AppColors.success : AppColors.error)
-                      .withOpacity(0.3),
+                      .withValues(alpha: 0.3),
                 ),
               ),
               child: Row(
@@ -633,7 +633,7 @@ class _AddProductPageState extends State<AddProductPage>
             style: AppTextStyles.caption.copyWith(color: AppColors.grey500),
           ),
           value: _trackInventory,
-          activeColor: AppColors.primary,
+          activeThumbColor: AppColors.primary,
           onChanged: (val) => setState(() => _trackInventory = val),
         ),
 
@@ -685,10 +685,10 @@ class _AddProductPageState extends State<AddProductPage>
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.info.withOpacity(0.1),
+                        color: AppColors.info.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: AppColors.info.withOpacity(0.3),
+                          color: AppColors.info.withValues(alpha: 0.3),
                         ),
                       ),
                       child: Text(
@@ -723,7 +723,7 @@ class _AddProductPageState extends State<AddProductPage>
         borderRadius: BorderRadius.circular(AppRadius.lg),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(isDark ? 0.2 : 0.1),
+            color: AppColors.black.withValues(alpha: isDark ? 0.2 : 0.1),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -737,7 +737,7 @@ class _AddProductPageState extends State<AddProductPage>
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(icon, color: color, size: 20),

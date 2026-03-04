@@ -108,7 +108,7 @@ class _DashboardPageState extends State<DashboardPage>
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(Icons.error_outline_rounded, size: 56,
-                              color: AppColors.error.withOpacity(0.6)),
+                              color: AppColors.error.withValues(alpha: 0.6)),
                           const SizedBox(height: 16),
                           Text(custState.message,
                               style: const TextStyle(fontSize: 14, color: AppColors.grey500),
@@ -424,7 +424,7 @@ class _DashboardPageState extends State<DashboardPage>
     return GlassCard(
       padding: EdgeInsets.zero,
       gradient: AppGradients.primaryGradient,
-      borderColor: Colors.white.withOpacity(0.15),
+      borderColor: Colors.white.withValues(alpha: 0.15),
       child: Stack(
         children: [
           Positioned(
@@ -433,7 +433,7 @@ class _DashboardPageState extends State<DashboardPage>
             child: Icon(
               Icons.account_balance_wallet,
               size: 140,
-              color: Colors.white.withOpacity(0.07),
+              color: Colors.white.withValues(alpha: 0.07),
             ),
           ),
           Padding(
@@ -452,7 +452,7 @@ class _DashboardPageState extends State<DashboardPage>
                               vertical: 3,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
+                              color: Colors.white.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(
                                 AppRadius.circular,
                               ),
@@ -460,7 +460,7 @@ class _DashboardPageState extends State<DashboardPage>
                             child: Text(
                               context.l10n.todaySummary,
                               style: AppTextStyles.caption.copyWith(
-                                color: Colors.white.withOpacity(0.9),
+                                color: Colors.white.withValues(alpha: 0.9),
                                 fontWeight: FontWeight.w600,
                                 letterSpacing: 0.8,
                                 fontSize: 9,
@@ -492,7 +492,7 @@ class _DashboardPageState extends State<DashboardPage>
                                     (percentChange >= 0
                                             ? Colors.greenAccent
                                             : AppColors.error)
-                                        .withOpacity(0.25),
+                                        .withValues(alpha: 0.25),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Row(
@@ -526,7 +526,7 @@ class _DashboardPageState extends State<DashboardPage>
                             child: Text(
                               context.l10n.fromYesterday,
                               style: AppTextStyles.caption.copyWith(
-                                color: Colors.white.withOpacity(0.7),
+                                color: Colors.white.withValues(alpha: 0.7),
                                 fontSize: 11,
                               ),
                               maxLines: 1,
@@ -544,8 +544,8 @@ class _DashboardPageState extends State<DashboardPage>
                   height: 72,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.15),
-                    border: Border.all(color: Colors.white.withOpacity(0.2)),
+                    color: Colors.white.withValues(alpha: 0.15),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -560,7 +560,7 @@ class _DashboardPageState extends State<DashboardPage>
                       Text(
                         'Txns',
                         style: AppTextStyles.caption.copyWith(
-                          color: Colors.white.withOpacity(0.7),
+                          color: Colors.white.withValues(alpha: 0.7),
                           fontSize: 10,
                         ),
                       ),
@@ -620,7 +620,7 @@ class _DashboardPageState extends State<DashboardPage>
         )
         .length;
 
-    String _formatCompact(double value) {
+    String formatCompact(double value) {
       if (value >= 100000) return '₹${(value / 100000).toStringAsFixed(1)}L';
       if (value >= 1000) return '₹${(value / 1000).toStringAsFixed(1)}K';
       return '₹${value.toStringAsFixed(0)}';
@@ -635,7 +635,7 @@ class _DashboardPageState extends State<DashboardPage>
                 onTap: () => context.go(RouteConstants.ledger),
                 child: _GlassStatCard(
                   title: context.l10n.totalOutstanding,
-                  value: _formatCompact(totalPending),
+                  value: formatCompact(totalPending),
                   subtitle: context.l10n.totalCustomersCount(owingCount),
                   icon: Icons.account_balance_wallet_outlined,
                   gradient: AppGradients.dangerGradient,
@@ -649,7 +649,7 @@ class _DashboardPageState extends State<DashboardPage>
                 onTap: () => context.go(RouteConstants.ledger),
                 child: _GlassStatCard(
                   title: context.l10n.todayCollection,
-                  value: _formatCompact(todayCollection),
+                  value: formatCompact(todayCollection),
                   subtitle: context.l10n.transactionCount(todayTxnCount),
                   icon: Icons.payments_outlined,
                   gradient: AppGradients.successGradient,
@@ -689,7 +689,7 @@ class _DashboardPageState extends State<DashboardPage>
                   gradient: LinearGradient(
                     colors: [
                       AppColors.secondary,
-                      AppColors.secondary.withOpacity(0.7),
+                      AppColors.secondary.withValues(alpha: 0.7),
                     ],
                   ),
                   isDark: isDark,
@@ -1018,7 +1018,7 @@ class _DashboardPageState extends State<DashboardPage>
                         title: '',
                         borderSide: isTouched
                             ? BorderSide(
-                                color: Colors.white.withOpacity(0.3),
+                                color: Colors.white.withValues(alpha: 0.3),
                                 width: 2,
                               )
                             : BorderSide.none,
@@ -1043,8 +1043,8 @@ class _DashboardPageState extends State<DashboardPage>
                         ),
                         decoration: BoxDecoration(
                           color: isHighlighted
-                              ? (entry.value['color'] as Color).withOpacity(
-                                  0.12,
+                              ? (entry.value['color'] as Color).withValues(
+                                  alpha: 0.12,
                                 )
                               : Colors.transparent,
                           borderRadius: BorderRadius.circular(8),
@@ -1060,7 +1060,7 @@ class _DashboardPageState extends State<DashboardPage>
                                 boxShadow: [
                                   BoxShadow(
                                     color: (entry.value['color'] as Color)
-                                        .withOpacity(0.4),
+                                        .withValues(alpha: 0.4),
                                     blurRadius: 4,
                                   ),
                                 ],
@@ -1160,7 +1160,7 @@ class _DashboardPageState extends State<DashboardPage>
             color: color,
             shape: BoxShape.circle,
             boxShadow: [
-              BoxShadow(color: color.withOpacity(0.4), blurRadius: 4),
+              BoxShadow(color: color.withValues(alpha: 0.4), blurRadius: 4),
             ],
           ),
         ),
@@ -1217,7 +1217,7 @@ class _DashboardPageState extends State<DashboardPage>
                 gradient: LinearGradient(
                   colors: [
                     AppColors.neonCyan,
-                    AppColors.neonCyan.withOpacity(0.7),
+                    AppColors.neonCyan.withValues(alpha: 0.7),
                   ],
                 ),
                 onTap: () => context.go(RouteConstants.ledger),
@@ -1231,7 +1231,7 @@ class _DashboardPageState extends State<DashboardPage>
                 gradient: LinearGradient(
                   colors: [
                     AppColors.secondary,
-                    AppColors.secondary.withOpacity(0.7),
+                    AppColors.secondary.withValues(alpha: 0.7),
                   ],
                 ),
                 onTap: () => context.push('/reports'),
@@ -1481,8 +1481,8 @@ class _DashboardPageState extends State<DashboardPage>
               height: 48,
               gradient: LinearGradient(
                 colors: [
-                  AppColors.primary.withOpacity(0.8),
-                  AppColors.primaryLight.withOpacity(0.6),
+                  AppColors.primary.withValues(alpha: 0.8),
+                  AppColors.primaryLight.withValues(alpha: 0.6),
                 ],
               ),
             ),
@@ -1540,7 +1540,7 @@ class _GlassStatCard extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: (trend! > 0 ? AppColors.success : AppColors.error)
-                        .withOpacity(0.12),
+                        .withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(AppRadius.circular),
                   ),
                   child: Row(
@@ -1673,12 +1673,12 @@ class _ShopTile extends StatelessWidget {
       onTap: onTap,
       child: GlassCard(
         margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-        borderColor: isSelected ? AppColors.primary.withOpacity(0.5) : null,
+        borderColor: isSelected ? AppColors.primary.withValues(alpha: 0.5) : null,
         gradient: isSelected
             ? LinearGradient(
                 colors: [
-                  AppColors.primary.withOpacity(0.15),
-                  AppColors.primary.withOpacity(0.05),
+                  AppColors.primary.withValues(alpha: 0.15),
+                  AppColors.primary.withValues(alpha: 0.05),
                 ],
               )
             : null,

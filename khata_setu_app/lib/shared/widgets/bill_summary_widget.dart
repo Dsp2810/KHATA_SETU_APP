@@ -102,7 +102,7 @@ class BillSummaryCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppRadius.md),
             boxShadow: [
               BoxShadow(
-                color: AppColors.black.withOpacity(context.isDark ? 0.3 : 0.08),
+                color: AppColors.black.withValues(alpha: context.isDark ? 0.3 : 0.08),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -134,8 +134,8 @@ class BillSummaryCard extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: bill.isPaid
-                  ? [AppColors.success, AppColors.success.withOpacity(0.7)]
-                  : [AppColors.warning, AppColors.warning.withOpacity(0.7)],
+                  ? [AppColors.success, AppColors.success.withValues(alpha: 0.7)]
+                  : [AppColors.warning, AppColors.warning.withValues(alpha: 0.7)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -172,7 +172,7 @@ class BillSummaryCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: AppColors.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
@@ -191,7 +191,7 @@ class BillSummaryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(context.isDark ? 0.15 : 0.08),
+        color: AppColors.primary.withValues(alpha: context.isDark ? 0.15 : 0.08),
         borderRadius: BorderRadius.circular(AppRadius.sm),
       ),
       child: Row(
@@ -199,7 +199,7 @@ class BillSummaryCard extends StatelessWidget {
           Icon(
             Icons.format_quote,
             size: 16,
-            color: AppColors.primary.withOpacity(0.7),
+            color: AppColors.primary.withValues(alpha: 0.7),
           ),
           const SizedBox(width: AppSpacing.xs),
           Expanded(
@@ -233,7 +233,7 @@ class BillSummaryCard extends StatelessWidget {
                   width: 24,
                   height: 24,
                   decoration: BoxDecoration(
-                    color: AppColors.grey200.withOpacity(context.isDark ? 0.2 : 1),
+                    color: AppColors.grey200.withValues(alpha: context.isDark ? 0.2 : 1),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Center(
@@ -326,8 +326,8 @@ class BillSummaryCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
             color: bill.isPaid
-                ? AppColors.success.withOpacity(0.15)
-                : AppColors.warning.withOpacity(0.15),
+                ? AppColors.success.withValues(alpha: 0.15)
+                : AppColors.warning.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
@@ -476,8 +476,8 @@ class BillDetailView extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
                         color: bill.isPaid
-                            ? AppColors.success.withOpacity(0.15)
-                            : AppColors.warning.withOpacity(0.15),
+                            ? AppColors.success.withValues(alpha: 0.15)
+                            : AppColors.warning.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
@@ -519,15 +519,15 @@ class BillDetailView extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.primary.withOpacity(context.isDark ? 0.2 : 0.1),
-            AppColors.secondary.withOpacity(context.isDark ? 0.1 : 0.05),
+            AppColors.primary.withValues(alpha: context.isDark ? 0.2 : 0.1),
+            AppColors.secondary.withValues(alpha: context.isDark ? 0.1 : 0.05),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(
-          color: AppColors.primary.withOpacity(0.2),
+          color: AppColors.primary.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -748,7 +748,7 @@ class BillDetailView extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: context.isDark ? AppColors.grey800.withOpacity(0.5) : AppColors.grey100,
+        color: context.isDark ? AppColors.grey800.withValues(alpha: 0.5) : AppColors.grey100,
         borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: Column(
@@ -811,10 +811,10 @@ class BillDetailView extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.info.withOpacity(0.1),
+        color: AppColors.info.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppRadius.sm),
         border: Border.all(
-          color: AppColors.info.withOpacity(0.3),
+          color: AppColors.info.withValues(alpha: 0.3),
         ),
       ),
       child: Row(
@@ -864,7 +864,7 @@ class BillDetailView extends StatelessWidget {
         color: context.surfaceColor,
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(0.1),
+            color: AppColors.black.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, -2),
           ),
@@ -943,7 +943,7 @@ class BillMiniPreview extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppRadius.md),
           boxShadow: [
             BoxShadow(
-              color: AppColors.black.withOpacity(context.isDark ? 0.3 : 0.08),
+              color: AppColors.black.withValues(alpha: context.isDark ? 0.3 : 0.08),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -956,7 +956,7 @@ class BillMiniPreview extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 14,
-                  backgroundColor: AppColors.primary.withOpacity(0.2),
+                  backgroundColor: AppColors.primary.withValues(alpha: 0.2),
                   child: Text(
                     bill.customerName[0].toUpperCase(),
                     style: AppTextStyles.labelSmall.copyWith(

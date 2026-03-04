@@ -2,13 +2,13 @@ import 'package:dartz/dartz.dart';
 import '../error/failures.dart';
 
 /// Base use case with parameters
-abstract class UseCase<Type, Params> {
-  Future<Either<Failure, Type>> call(Params params);
+abstract class UseCase<T, Params> {
+  Future<Either<Failure, T>> call(Params params);
 }
 
 /// Use case without parameters
-abstract class UseCaseNoParams<Type> {
-  Future<Either<Failure, Type>> call();
+abstract class UseCaseNoParams<T> {
+  Future<Either<Failure, T>> call();
 }
 
 /// Use case parameter for no params

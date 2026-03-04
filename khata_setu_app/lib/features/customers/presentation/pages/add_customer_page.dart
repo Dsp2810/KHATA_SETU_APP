@@ -114,7 +114,7 @@ class _AddCustomerPageState extends State<AddCustomerPage>
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: AppColors.success.withOpacity(0.1),
+                    color: AppColors.success.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
@@ -364,7 +364,7 @@ class _AddCustomerPageState extends State<AddCustomerPage>
                               decoration: BoxDecoration(
                                 color: isSelected
                                     ? AppColors.primary
-                                    : AppColors.primary.withOpacity(0.08),
+                                    : AppColors.primary.withValues(alpha: 0.08),
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
                                   color: isSelected
@@ -450,7 +450,7 @@ class _AddCustomerPageState extends State<AddCustomerPage>
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withOpacity(0.3),
+                      color: AppColors.primary.withValues(alpha: 0.3),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -533,7 +533,7 @@ class _AddCustomerPageState extends State<AddCustomerPage>
                       height: 60,
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? AppColors.primary.withOpacity(0.15)
+                            ? AppColors.primary.withValues(alpha: 0.15)
                             : AppColors.grey100,
                         shape: BoxShape.circle,
                         border: Border.all(
@@ -641,7 +641,7 @@ class _AddCustomerPageState extends State<AddCustomerPage>
         borderRadius: BorderRadius.circular(AppRadius.lg),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(isDark ? 0.2 : 0.1),
+            color: AppColors.black.withValues(alpha: isDark ? 0.2 : 0.1),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -655,7 +655,7 @@ class _AddCustomerPageState extends State<AddCustomerPage>
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(icon, color: color, size: 20),

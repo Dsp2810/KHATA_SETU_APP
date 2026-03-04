@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 
 import '../constants/constants.dart';
@@ -6,6 +8,11 @@ import '../storage/secure_storage.dart';
 class AuthInterceptor extends Interceptor {
   final SecureStorageService _secureStorage;
   final Dio _dio;
+
+  /// Mutex to prevent concurrent token refresh requests.
+  /// When a refresh is in progress, subsequent 401 handlers
+  /// will await this same future instead of triggering a new refresh.
+  Completer<bool>? _refreshCompleter;
 
   AuthInterceptor(this._secureStorage, this._dio);
 
@@ -41,11 +48,12 @@ class AuthInterceptor extends Interceptor {
     ErrorInterceptorHandler handler,
   ) async {
     if (err.response?.statusCode == 401 &&
-        !err.requestOptions.path.contains('/auth/refresh')) {
-      // Token expired - try refresh
-      final refreshed = await _refreshToken();
+        !err.requestOptions.path.contains('/auth/refresh') &&
+        !err.requestOptions.path.contains('/auth/logout')) {
+      // Token expired - try refresh (with mutex)
+      final refreshed = await _safeRefreshToken();
       if (refreshed) {
-        // Retry original request
+        // Retry original request with new token
         try {
           final response = await _retryRequest(err.requestOptions);
           return handler.resolve(response);
@@ -58,6 +66,26 @@ class AuthInterceptor extends Interceptor {
       }
     }
     handler.next(err);
+  }
+
+  /// Thread-safe refresh that deduplicates concurrent 401 calls.
+  Future<bool> _safeRefreshToken() async {
+    // If a refresh is already in progress, wait for it
+    if (_refreshCompleter != null) {
+      return _refreshCompleter!.future;
+    }
+
+    _refreshCompleter = Completer<bool>();
+    try {
+      final result = await _refreshToken();
+      _refreshCompleter!.complete(result);
+      return result;
+    } catch (e) {
+      _refreshCompleter!.complete(false);
+      return false;
+    } finally {
+      _refreshCompleter = null;
+    }
   }
 
   Future<bool> _refreshToken() async {

@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -99,6 +98,7 @@ class _UpiSetupPageState extends State<UpiSetupPage> {
       if (picked == null) return;
 
       final bytes = await picked.readAsBytes();
+      if (!mounted) return;
       await context.read<ShopUpiCubit>().saveQrImage(_existingId!, bytes);
       setState(() => _qrImagePath = picked.path);
     } catch (e) {
@@ -265,7 +265,7 @@ class _UpiSetupPageState extends State<UpiSetupPage> {
                                 width: double.infinity,
                                 height: 200,
                                 fit: BoxFit.contain,
-                                errorBuilder: (_, __, ___) => Container(
+                                errorBuilder: (_, _, _) => Container(
                                   height: 200,
                                   decoration: BoxDecoration(
                                     color: context.glassColor,
@@ -324,7 +324,7 @@ class _UpiSetupPageState extends State<UpiSetupPage> {
                                       padding: const EdgeInsets.all(12),
                                       decoration: BoxDecoration(
                                         color:
-                                            AppColors.teal.withOpacity(0.12),
+                                            AppColors.teal.withValues(alpha: 0.12),
                                         shape: BoxShape.circle,
                                       ),
                                       child: const Icon(
@@ -434,7 +434,7 @@ class _UpiSetupPageState extends State<UpiSetupPage> {
         borderRadius: BorderRadius.circular(AppRadius.lg),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(isDark ? 0.2 : 0.1),
+            color: AppColors.black.withValues(alpha: isDark ? 0.2 : 0.1),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -448,7 +448,7 @@ class _UpiSetupPageState extends State<UpiSetupPage> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(icon, color: color, size: 20),

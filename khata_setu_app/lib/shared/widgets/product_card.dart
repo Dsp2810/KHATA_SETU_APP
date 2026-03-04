@@ -41,7 +41,7 @@ class ProductCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppRadius.md),
           boxShadow: [
             BoxShadow(
-              color: AppColors.black.withOpacity(isDark ? 0.3 : 0.05),
+              color: AppColors.black.withValues(alpha: isDark ? 0.3 : 0.05),
               blurRadius: 10,
               offset: const Offset(0, 2),
             ),
@@ -56,8 +56,8 @@ class ProductCard extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    AppColors.primary.withOpacity(0.1),
-                    AppColors.primaryLight.withOpacity(0.1),
+                    AppColors.primary.withValues(alpha: 0.1),
+                    AppColors.primaryLight.withValues(alpha: 0.1),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -72,7 +72,7 @@ class ProductCard extends StatelessWidget {
                     child: Icon(
                       Icons.inventory_2_outlined,
                       size: 36,
-                      color: AppColors.primary.withOpacity(0.6),
+                      color: AppColors.primary.withValues(alpha: 0.6),
                     ),
                   ),
                   if (isLowStock)
@@ -156,8 +156,8 @@ class ProductCard extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           color: isLowStock
-                              ? AppColors.error.withOpacity(0.1)
-                              : AppColors.success.withOpacity(0.1),
+                              ? AppColors.error.withValues(alpha: 0.1)
+                              : AppColors.success.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(AppRadius.xs),
                         ),
                         child: Text(
@@ -216,7 +216,7 @@ class ProductListCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppRadius.md),
           boxShadow: [
             BoxShadow(
-              color: AppColors.black.withOpacity(isDark ? 0.2 : 0.04),
+              color: AppColors.black.withValues(alpha: isDark ? 0.2 : 0.04),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -229,7 +229,7 @@ class ProductListCard extends StatelessWidget {
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               child: const Icon(
@@ -271,10 +271,10 @@ class ProductListCard extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           color: outOfStock
-                              ? AppColors.grey400.withOpacity(0.2)
+                              ? AppColors.grey400.withValues(alpha: 0.2)
                               : isLowStock
-                                  ? AppColors.error.withOpacity(0.1)
-                                  : AppColors.success.withOpacity(0.1),
+                                  ? AppColors.error.withValues(alpha: 0.1)
+                                  : AppColors.success.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(AppRadius.xs),
                         ),
                         child: Text(

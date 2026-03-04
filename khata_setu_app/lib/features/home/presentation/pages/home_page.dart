@@ -146,12 +146,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             child: Container(
               height: 72,
               decoration: BoxDecoration(
-                color: context.navColor.withOpacity(isDark ? 0.85 : 0.92),
+                color: context.navColor.withValues(alpha: isDark ? 0.85 : 0.92),
                 borderRadius: BorderRadius.circular(AppRadius.xxl),
                 border: Border.all(
                   color: isDark
-                      ? context.glassBorderColor.withOpacity(0.3)
-                      : AppColors.borderLight.withOpacity(0.4),
+                      ? context.glassBorderColor.withValues(alpha: 0.3)
+                      : AppColors.borderLight.withValues(alpha: 0.4),
                   width: 1,
                 ),
                 boxShadow: context.navShadow,
@@ -226,7 +226,7 @@ class _FluidIndicator extends StatelessWidget {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withOpacity(0.3),
+                  color: AppColors.primary.withValues(alpha: 0.3),
                   blurRadius: 8,
                   spreadRadius: -2,
                 ),

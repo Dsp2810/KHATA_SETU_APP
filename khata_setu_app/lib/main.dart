@@ -16,7 +16,6 @@ import 'features/customers/presentation/bloc/customer_bloc.dart';
 import 'features/ledger/presentation/bloc/transaction_bloc.dart';
 import 'features/inventory/presentation/bloc/inventory_bloc.dart';
 import 'features/upi/presentation/bloc/shop_upi_cubit.dart';
-import 'features/auth/presentation/bloc/biometric_cubit.dart';
 import 'features/daily_notebook/presentation/bloc/daily_note_bloc.dart';
 import 'features/home/presentation/bloc/dashboard_cubit.dart';
 import 'features/notifications/presentation/bloc/notification_bloc.dart';
@@ -77,7 +76,6 @@ class KhataSetuApp extends StatelessWidget {
         BlocProvider(create: (_) => getIt<TransactionBloc>()),
         BlocProvider(create: (_) => getIt<InventoryBloc>()),
         BlocProvider(create: (_) => getIt<ShopUpiCubit>()),
-        BlocProvider(create: (_) => getIt<BiometricCubit>()),
         BlocProvider(create: (_) => getIt<DailyNoteBloc>()),
         BlocProvider(create: (_) => getIt<DashboardCubit>()),
         BlocProvider(create: (_) => getIt<NotificationBloc>()..add(const LoadNotifications())),

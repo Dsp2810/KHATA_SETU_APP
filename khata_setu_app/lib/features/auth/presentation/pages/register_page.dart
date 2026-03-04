@@ -145,7 +145,7 @@ class _RegisterPageState extends State<RegisterPage>
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.success.withOpacity(0.3),
+                        color: AppColors.success.withValues(alpha: 0.3),
                         blurRadius: 20,
                         offset: const Offset(0, 6),
                       ),
@@ -230,7 +230,7 @@ class _RegisterPageState extends State<RegisterPage>
             end: Alignment.bottomCenter,
             colors: isDark
                 ? [context.surfaceColor, context.backgroundColor]
-                : [AppColors.primary.withOpacity(0.03), AppColors.white],
+                : [AppColors.primary.withValues(alpha: 0.03), AppColors.white],
           ),
         ),
         child: SafeArea(
@@ -324,7 +324,7 @@ class _RegisterPageState extends State<RegisterPage>
             decoration: BoxDecoration(
               color: isDark
                   ? AppColors.grey800
-                  : AppColors.primary.withOpacity(0.1),
+                  : AppColors.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
@@ -381,7 +381,7 @@ class _RegisterPageState extends State<RegisterPage>
                         boxShadow: isActive && !isComplete
                             ? [
                                 BoxShadow(
-                                  color: AppColors.primary.withOpacity(0.3),
+                                  color: AppColors.primary.withValues(alpha: 0.3),
                                   blurRadius: 8,
                                 ),
                               ]
@@ -516,7 +516,7 @@ class _RegisterPageState extends State<RegisterPage>
                         )
                       : null,
                   color: !isSelected
-                      ? AppColors.secondary.withOpacity(0.06)
+                      ? AppColors.secondary.withValues(alpha: 0.06)
                       : null,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
@@ -678,7 +678,7 @@ class _RegisterPageState extends State<RegisterPage>
         borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(
           color: _agreedToTerms
-              ? AppColors.success.withOpacity(0.3)
+              ? AppColors.success.withValues(alpha: 0.3)
               : AppColors.grey200,
         ),
       ),
@@ -755,7 +755,7 @@ class _RegisterPageState extends State<RegisterPage>
             borderRadius: BorderRadius.circular(AppRadius.md),
             boxShadow: [
               BoxShadow(
-                color: AppColors.success.withOpacity(0.3),
+                color: AppColors.success.withValues(alpha: 0.3),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -844,7 +844,7 @@ class _RegisterPageState extends State<RegisterPage>
         borderRadius: BorderRadius.circular(AppRadius.lg),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(isDark ? 0.2 : 0.1),
+            color: AppColors.black.withValues(alpha: isDark ? 0.2 : 0.1),
             blurRadius: 12,
             offset: const Offset(0, 2),
           ),
@@ -858,7 +858,7 @@ class _RegisterPageState extends State<RegisterPage>
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(icon, color: color, size: 20),

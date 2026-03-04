@@ -48,8 +48,8 @@ class ApiService {
 
   Future<void> logout({String? refreshToken, String? deviceId}) async {
     await _dio.post(ApiEndpoints.logout, data: {
-      if (refreshToken != null) 'refreshToken': refreshToken,
-      if (deviceId != null) 'deviceId': deviceId,
+      'refreshToken': ?refreshToken,
+      'deviceId': ?deviceId,
     });
   }
 
@@ -72,8 +72,8 @@ class ApiService {
   }) async {
     final response = await _dio.post(ApiEndpoints.shops, data: {
       'name': name,
-      if (address != null) 'address': address,
-      if (phone != null) 'phone': phone,
+      'address': ?address,
+      'phone': ?phone,
     });
     return response.data['data'];
   }
@@ -99,10 +99,10 @@ class ApiService {
       queryParameters: {
         'page': page,
         'limit': limit,
-        if (search != null) 'search': search,
-        if (sortBy != null) 'sortBy': sortBy,
-        if (sortOrder != null) 'sortOrder': sortOrder,
-        if (hasBalance != null) 'hasBalance': hasBalance,
+        'search': ?search,
+        'sortBy': ?sortBy,
+        'sortOrder': ?sortOrder,
+        'hasBalance': ?hasBalance,
       },
     );
     return response.data['data'];
@@ -130,11 +130,11 @@ class ApiService {
       data: {
         'name': name,
         'phone': phone,
-        if (email != null) 'email': email,
-        if (address != null) 'address': address,
-        if (creditLimit != null) 'creditLimit': creditLimit,
-        if (avatar != null) 'avatar': avatar,
-        if (notes != null) 'notes': notes,
+        'email': ?email,
+        'address': ?address,
+        'creditLimit': ?creditLimit,
+        'avatar': ?avatar,
+        'notes': ?notes,
       },
     );
     return response.data['data'];
@@ -193,12 +193,12 @@ class ApiService {
       queryParameters: {
         'page': page,
         'limit': limit,
-        if (customerId != null) 'customerId': customerId,
-        if (type != null) 'type': type,
-        if (startDate != null) 'startDate': startDate,
-        if (endDate != null) 'endDate': endDate,
-        if (sortBy != null) 'sortBy': sortBy,
-        if (sortOrder != null) 'sortOrder': sortOrder,
+        'customerId': ?customerId,
+        'type': ?type,
+        'startDate': ?startDate,
+        'endDate': ?endDate,
+        'sortBy': ?sortBy,
+        'sortOrder': ?sortOrder,
       },
     );
     return response.data['data'];
@@ -219,9 +219,9 @@ class ApiService {
         'customerId': customerId,
         'type': type,
         'amount': amount,
-        if (description != null) 'description': description,
-        if (paymentMode != null) 'paymentMode': paymentMode,
-        if (items != null) 'linkedProducts': items,
+        'description': ?description,
+        'paymentMode': ?paymentMode,
+        'linkedProducts': ?items,
       },
     );
     return response.data['data'];
@@ -234,7 +234,7 @@ class ApiService {
   }) async {
     await _dio.delete(
       ApiEndpoints.ledgerEntry(shopId, entryId),
-      data: {if (reason != null) 'reason': reason},
+      data: {'reason': ?reason},
     );
   }
 
@@ -246,8 +246,8 @@ class ApiService {
     final response = await _dio.get(
       ApiEndpoints.ledgerSummary(shopId),
       queryParameters: {
-        if (startDate != null) 'startDate': startDate,
-        if (endDate != null) 'endDate': endDate,
+        'startDate': ?startDate,
+        'endDate': ?endDate,
       },
     );
     return response.data['data'];
@@ -283,11 +283,11 @@ class ApiService {
       queryParameters: {
         'page': page,
         'limit': limit,
-        if (search != null) 'search': search,
-        if (category != null) 'category': category,
-        if (isLowStock != null) 'lowStock': isLowStock,
-        if (sortBy != null) 'sortBy': sortBy,
-        if (sortOrder != null) 'sortOrder': sortOrder,
+        'search': ?search,
+        'category': ?category,
+        'lowStock': ?isLowStock,
+        'sortBy': ?sortBy,
+        'sortOrder': ?sortOrder,
       },
     );
     return response.data['data'];
@@ -353,8 +353,8 @@ class ApiService {
       data: {
         'type': type,
         'quantity': quantity,
-        if (unitPrice != null) 'unitPrice': unitPrice,
-        if (notes != null) 'notes': notes,
+        'unitPrice': ?unitPrice,
+        'notes': ?notes,
       },
     );
     return response.data['data'];
@@ -385,8 +385,8 @@ class ApiService {
     final response = await _dio.get(
       ApiEndpoints.ledgerReport(shopId),
       queryParameters: {
-        if (startDate != null) 'startDate': startDate,
-        if (endDate != null) 'endDate': endDate,
+        'startDate': ?startDate,
+        'endDate': ?endDate,
       },
     );
     return response.data['data'];
@@ -438,15 +438,15 @@ class ApiService {
       queryParameters: {
         'page': page,
         'limit': limit,
-        if (customerId != null) 'customerId': customerId,
-        if (status != null) 'status': status,
-        if (priority != null) 'priority': priority,
-        if (tag != null) 'tag': tag,
-        if (startDate != null) 'startDate': startDate,
-        if (endDate != null) 'endDate': endDate,
-        if (search != null) 'search': search,
-        if (sortBy != null) 'sortBy': sortBy,
-        if (sortOrder != null) 'sortOrder': sortOrder,
+        'customerId': ?customerId,
+        'status': ?status,
+        'priority': ?priority,
+        'tag': ?tag,
+        'startDate': ?startDate,
+        'endDate': ?endDate,
+        'search': ?search,
+        'sortBy': ?sortBy,
+        'sortOrder': ?sortOrder,
       },
     );
     return response.data['data'];
@@ -513,7 +513,7 @@ class ApiService {
       ApiEndpoints.notesBulkDelete(shopId),
       data: {
         'noteIds': noteIds,
-        if (reason != null) 'reason': reason,
+        'reason': ?reason,
       },
     );
     return response.data['data'];
@@ -532,8 +532,8 @@ class ApiService {
     final response = await _dio.get(
       ApiEndpoints.notesSummary(shopId),
       queryParameters: {
-        if (startDate != null) 'startDate': startDate,
-        if (endDate != null) 'endDate': endDate,
+        'startDate': ?startDate,
+        'endDate': ?endDate,
       },
     );
     return response.data['data'];

@@ -1,6 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../utils/app_logger.dart';
 import '../datasources/product_local_datasource.dart';
 import '../datasources/product_remote_datasource.dart';
 import '../models/product_model.dart';
@@ -35,7 +35,7 @@ class ProductRepository {
         }
         return remoteProducts;
       } catch (e) {
-        debugPrint('Remote product fetch failed, using local: $e');
+        AppLogger.warning('Remote product fetch failed, using local: $e');
       }
     }
 
@@ -130,7 +130,7 @@ class ProductRepository {
         await _local.saveProduct(remoteProduct);
         return remoteProduct;
       } catch (e) {
-        debugPrint('Remote create product failed, saving locally: $e');
+        AppLogger.warning('Remote create product failed, saving locally: $e');
       }
     }
 
@@ -167,7 +167,7 @@ class ProductRepository {
         await _local.saveProduct(updated);
         return;
       } catch (e) {
-        debugPrint('Remote update product failed, saving locally: $e');
+        AppLogger.warning('Remote update product failed, saving locally: $e');
       }
     }
 
@@ -182,7 +182,7 @@ class ProductRepository {
       try {
         await _remote!.deleteProduct(productId);
       } catch (e) {
-        debugPrint('Remote delete product failed: $e');
+        AppLogger.warning('Remote delete product failed: $e');
       }
     }
     await _local.deleteProduct(productId);
@@ -209,7 +209,7 @@ class ProductRepository {
           notes: notes,
         );
       } catch (e) {
-        debugPrint('Remote stock adjustment failed: $e');
+        AppLogger.warning('Remote stock adjustment failed: $e');
       }
     }
 
@@ -231,7 +231,7 @@ class ProductRepository {
         await _local.saveProduct(remoteProduct);
         syncedCount++;
       } catch (e) {
-        debugPrint('Failed to sync product ${product.id}: $e');
+        AppLogger.warning('Failed to sync product ${product.id}: $e');
       }
     }
 

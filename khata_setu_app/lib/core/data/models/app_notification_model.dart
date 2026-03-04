@@ -144,7 +144,7 @@ class AppNotificationModel extends HiveObject {
   }) {
     return AppNotificationModel.create(
       title: 'Low Stock Alert',
-      body: '$productName is running low ($currentStock/${minStock} units)',
+      body: '$productName is running low ($currentStock/$minStock units)',
       type: NotificationType.lowStock,
       productId: productId,
       actionRoute: '/inventory',

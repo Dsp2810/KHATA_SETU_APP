@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/network/api_service.dart';
@@ -11,7 +10,7 @@ import 'auth_event.dart';
 import 'auth_state.dart';
 
 /// AuthBloc backed by [ApiService] + [SecureStorageService].
-/// Handles login, register, check-session, logout, and demo mode.
+/// Handles login, register, check-session, and logout.
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final ApiService _api;
   final SecureStorageService _storage;
@@ -29,12 +28,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<LoginRequested>(_onLoginRequested);
     on<RegisterRequested>(_onRegisterRequested);
     on<LogoutRequested>(_onLogoutRequested);
-    on<DemoLoginRequested>(_onDemoLogin);
-    // OTP / forgot-password handlers can be wired later
-    on<SendOtpRequested>((e, emit) => emit(const AuthError('OTP not available yet')));
-    on<VerifyOtpRequested>((e, emit) => emit(const AuthError('OTP not available yet')));
-    on<ForgotPasswordRequested>((e, emit) => emit(const AuthError('Not available yet')));
-    on<ResetPasswordRequested>((e, emit) => emit(const AuthError('Not available yet')));
   }
 
   // ─── Check existing session ──────────────────────────────────
@@ -54,7 +47,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     // ── Offline path: token exists but no network ──────────────
     final isOnline = await _connectivity.checkConnectivity();
     if (!isOnline) {
-      debugPrint('Device offline — using cached user profile');
+      // Offline: use cached user profile for seamless offline experience
       final cachedUser = await _userFromStorage();
       if (cachedUser != null) {
         emit(AuthenticatedOffline(cachedUser));
@@ -88,7 +81,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } catch (e) {
       // ── Distinguish 401 from network errors ──────────────────
       if (_isUnauthorized(e)) {
-        debugPrint('Token rejected (401) — trying refresh');
+        // Token rejected (401) — attempt silent refresh
         final refreshed = await _tryRefreshAndRetry(emit);
         if (!refreshed) {
           await _storage.clearTokens();
@@ -97,7 +90,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       } else {
         // Network timeout, socket error, server 500, etc.
         // Do NOT clear tokens — user's session is still valid.
-        debugPrint('Network error during session check: $e');
         final cachedUser = await _userFromStorage();
         if (cachedUser != null) {
           emit(AuthenticatedOffline(cachedUser));
@@ -150,8 +142,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       emit(Authenticated(user));
       return true;
-    } catch (e) {
-      debugPrint('Token refresh failed: $e');
+    } catch (_) {
       return false;
     }
   }
@@ -281,33 +272,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     await _storage.clearTokens();
     emit(const Unauthenticated());
-  }
-
-  // ─── Demo Mode ───────────────────────────────────────────────
-
-  Future<void> _onDemoLogin(
-    DemoLoginRequested event,
-    Emitter<AuthState> emit,
-  ) async {
-    emit(const AuthLoading());
-    // Demo mode: no backend, no tokens — just proceed
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    // Persist demo profile so settings/dashboard work
-    await _storage.saveUserName('Demo Shopkeeper');
-    await _storage.saveUserPhone('9876543210');
-    await _storage.saveActiveShopName('Demo Shop');
-
-    final user = User(
-      id: 'demo',
-      name: 'Demo Shopkeeper',
-      phone: '9876543210',
-      role: 'owner',
-      isActive: true,
-      isPhoneVerified: false,
-      createdAt: DateTime.now(),
-    );
-    emit(Authenticated(user));
   }
 
   // ─── Helpers ─────────────────────────────────────────────────

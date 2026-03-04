@@ -178,6 +178,8 @@ class _ReportsPageState extends State<ReportsPage>
       final secureStorage = getIt<SecureStorageService>();
       final shopName = await secureStorage.read('shop_name') ?? AppConstants.appName;
 
+      if (!mounted) return;
+
       final bytes = await PdfReportService.generateReport(
         type: _selectedReportType,
         shopName: shopName,
@@ -482,7 +484,7 @@ class _ReportsPageState extends State<ReportsPage>
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
-                            color: AppColors.primary.withOpacity(0.3),
+                            color: AppColors.primary.withValues(alpha: 0.3),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -562,7 +564,7 @@ class _ReportsPageState extends State<ReportsPage>
         borderRadius: BorderRadius.circular(AppRadius.lg),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(isDark ? 0.2 : 0.1),
+            color: AppColors.black.withValues(alpha: isDark ? 0.2 : 0.1),
             blurRadius: 10,
           ),
         ],
@@ -575,7 +577,7 @@ class _ReportsPageState extends State<ReportsPage>
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(Icons.date_range, color: AppColors.primary, size: 20),
@@ -595,9 +597,9 @@ class _ReportsPageState extends State<ReportsPage>
               decoration: BoxDecoration(
                 color: isDark
                     ? AppColors.grey800
-                    : AppColors.primary.withOpacity(0.05),
+                    : AppColors.primary.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+                border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
               ),
               child: Row(
                 children: [
@@ -658,7 +660,7 @@ class _ReportsPageState extends State<ReportsPage>
         borderRadius: BorderRadius.circular(AppRadius.lg),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(isDark ? 0.2 : 0.1),
+            color: AppColors.black.withValues(alpha: isDark ? 0.2 : 0.1),
             blurRadius: 10,
           ),
         ],
@@ -671,7 +673,7 @@ class _ReportsPageState extends State<ReportsPage>
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.secondary.withOpacity(0.1),
+                  color: AppColors.secondary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(Icons.person, color: AppColors.secondary, size: 20),
@@ -685,7 +687,7 @@ class _ReportsPageState extends State<ReportsPage>
           ),
           const SizedBox(height: AppSpacing.md),
           DropdownButtonFormField<String>(
-            value: _selectedCustomer,
+            initialValue: _selectedCustomer,
             decoration: InputDecoration(
               hintText: context.l10n.selectCustomerHint,
               filled: true,
@@ -822,10 +824,10 @@ class _ReportsPageState extends State<ReportsPage>
         decoration: BoxDecoration(
           color: context.cardColor,
           borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(color: color.withOpacity(0.2)),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
           boxShadow: [
             BoxShadow(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -839,7 +841,7 @@ class _ReportsPageState extends State<ReportsPage>
                 Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
+                    color: color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Icon(icon, color: color, size: 16),
@@ -887,7 +889,7 @@ class _ReportsPageState extends State<ReportsPage>
           borderRadius: BorderRadius.circular(AppRadius.md),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withOpacity(0.4),
+              color: AppColors.primary.withValues(alpha: 0.4),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -958,7 +960,7 @@ class _ReportsPageState extends State<ReportsPage>
         borderRadius: BorderRadius.circular(AppRadius.lg),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(isDark ? 0.2 : 0.1),
+            color: AppColors.black.withValues(alpha: isDark ? 0.2 : 0.1),
             blurRadius: 10,
           ),
         ],
@@ -993,7 +995,7 @@ class _ReportsPageState extends State<ReportsPage>
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: (isCredit ? AppColors.error : AppColors.success).withOpacity(0.1),
+                        color: (isCredit ? AppColors.error : AppColors.success).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(

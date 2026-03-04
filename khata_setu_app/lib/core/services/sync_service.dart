@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import '../data/datasources/udhar_local_datasource.dart';
+import '../utils/app_logger.dart';
 import '../data/datasources/udhar_remote_datasource.dart';
 
 /// Background sync service that pushes unsynced local changes to the backend.
@@ -73,7 +74,7 @@ class SyncService {
             await customer.save();
             syncedCustomers++;
           } catch (e) {
-            debugPrint('Sync customer ${customer.id} failed: $e');
+            AppLogger.warning('Sync customer ${customer.id} failed: $e');
             errors++;
           }
         }
@@ -102,7 +103,7 @@ class SyncService {
           await txn.save();
           syncedTransactions++;
         } catch (e) {
-          debugPrint('Sync transaction ${txn.id} failed: $e');
+          AppLogger.warning('Sync transaction ${txn.id} failed: $e');
           errors++;
         }
       }
@@ -114,7 +115,7 @@ class SyncService {
           await _local.saveCustomer(c);
         }
       } catch (e) {
-        debugPrint('Pull remote customers failed: $e');
+        AppLogger.warning('Pull remote customers failed: $e');
       }
 
       _isSyncing = false;

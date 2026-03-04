@@ -147,8 +147,8 @@ class AppGradients {
   // ─── Glass Card Gradients — Very subtle frosted tint ───
   static LinearGradient get glassGradientDark => LinearGradient(
     colors: [
-      const Color(0xFFFFFFFF).withOpacity(0.03),
-      const Color(0xFFFFFFFF).withOpacity(0.01),
+      const Color(0xFFFFFFFF).withValues(alpha: 0.03),
+      const Color(0xFFFFFFFF).withValues(alpha: 0.01),
     ],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
@@ -156,8 +156,8 @@ class AppGradients {
 
   static LinearGradient get glassGradientLight => LinearGradient(
     colors: [
-      const Color(0xFFFFFFFF).withOpacity(0.90),
-      const Color(0xFFFFFFFF).withOpacity(0.75),
+      const Color(0xFFFFFFFF).withValues(alpha: 0.90),
+      const Color(0xFFFFFFFF).withValues(alpha: 0.75),
     ],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
@@ -229,8 +229,8 @@ class AppGradients {
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      const Color(0xFFFFFFFF).withOpacity(0.02),
-      const Color(0xFFFFFFFF).withOpacity(0.00),
+      const Color(0xFFFFFFFF).withValues(alpha: 0.02),
+      const Color(0xFFFFFFFF).withValues(alpha: 0.00),
     ],
   );
 
@@ -238,8 +238,8 @@ class AppGradients {
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      const Color(0xFFFFFFFF).withOpacity(0.6),
-      const Color(0xFFFFFFFF).withOpacity(0.3),
+      const Color(0xFFFFFFFF).withValues(alpha: 0.6),
+      const Color(0xFFFFFFFF).withValues(alpha: 0.3),
     ],
   );
 }

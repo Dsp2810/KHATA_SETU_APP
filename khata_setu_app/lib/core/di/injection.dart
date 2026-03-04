@@ -1,5 +1,4 @@
 import 'package:get_it/get_it.dart';
-import 'package:injectable/injectable.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -25,8 +24,6 @@ import '../data/repositories/shop_upi_repository.dart';
 import '../../features/upi/presentation/bloc/shop_upi_cubit.dart';
 import '../../features/settings/presentation/bloc/language_cubit.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
-import '../../features/auth/presentation/bloc/biometric_cubit.dart';
-import '../services/biometric_service.dart';
 import '../services/sync_service.dart';
 import '../services/connectivity_service.dart';
 import '../data/datasources/daily_note_local_datasource.dart';
@@ -39,7 +36,6 @@ import '../../features/notifications/presentation/bloc/notification_bloc.dart';
 
 final getIt = GetIt.instance;
 
-@InjectableInit()
 Future<void> configureDependencies() async {
   // External Dependencies
   final sharedPreferences = await SharedPreferences.getInstance();
@@ -77,16 +73,6 @@ Future<void> configureDependencies() async {
 
   // Cart Manager - Singleton for POS/Billing
   getIt.registerLazySingleton<CartManager>(() => CartManager());
-
-  // Biometric
-  getIt.registerLazySingleton<IBiometricService>(() => BiometricService());
-  getIt.registerLazySingleton<BiometricCubit>(
-    () => BiometricCubit(
-      biometricService: getIt<IBiometricService>(),
-      localStorage: getIt<LocalStorageService>(),
-      secureStorage: getIt<SecureStorageService>(),
-    ),
-  );
 
   // Connectivity
   final connectivityService = ConnectivityService();

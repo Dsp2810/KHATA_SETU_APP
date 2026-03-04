@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../theme/app_colors.dart';
@@ -123,7 +122,7 @@ class _TrustRingPainter extends CustomPainter {
 
     // Background track
     final trackPaint = Paint()
-      ..color = (isDark ? Colors.white : Colors.black).withOpacity(0.08)
+      ..color = (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08)
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
@@ -138,7 +137,7 @@ class _TrustRingPainter extends CustomPainter {
     final gradient = SweepGradient(
       startAngle: -math.pi / 2,
       endAngle: -math.pi / 2 + sweepAngle,
-      colors: [scoreColor.withOpacity(0.3), scoreColor],
+      colors: [scoreColor.withValues(alpha: 0.3), scoreColor],
       stops: const [0.0, 1.0],
     );
 
@@ -156,7 +155,7 @@ class _TrustRingPainter extends CustomPainter {
     final dotY = center.dy + radius * math.sin(endAngle);
 
     final glowPaint = Paint()
-      ..color = scoreColor.withOpacity(0.5)
+      ..color = scoreColor.withValues(alpha: 0.5)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
     canvas.drawCircle(Offset(dotX, dotY), strokeWidth * 0.8, glowPaint);
 
@@ -254,7 +253,7 @@ class _MorphingGradientButtonState extends State<MorphingGradientButton>
                     color: (widget.gradient as LinearGradient)
                         .colors
                         .first
-                        .withOpacity(_glowAnim.value),
+                        .withValues(alpha: _glowAnim.value),
                     blurRadius: 20,
                     offset: const Offset(0, 6),
                     spreadRadius: -2,
@@ -363,15 +362,15 @@ class _GlassShimmerState extends State<GlassShimmer>
               colors: isDark
                   ? [
                       AppColors.glassDark,
-                      AppColors.glassDark.withOpacity(0.5),
-                      Colors.white.withOpacity(0.08),
-                      AppColors.glassDark.withOpacity(0.5),
+                      AppColors.glassDark.withValues(alpha: 0.5),
+                      Colors.white.withValues(alpha: 0.08),
+                      AppColors.glassDark.withValues(alpha: 0.5),
                       AppColors.glassDark,
                     ]
                   : [
                       AppColors.grey200,
                       AppColors.grey100,
-                      Colors.white.withOpacity(0.6),
+                      Colors.white.withValues(alpha: 0.6),
                       AppColors.grey100,
                       AppColors.grey200,
                     ],
@@ -733,7 +732,7 @@ class _ConfettiPainter extends CustomPainter {
       final opacity = (1 - progress).clamp(0.0, 1.0);
 
       final paint = Paint()
-        ..color = piece.color.withOpacity(opacity * 0.9)
+        ..color = piece.color.withValues(alpha: opacity * 0.9)
         ..style = PaintingStyle.fill;
 
       canvas.save();
@@ -862,7 +861,7 @@ class _FluidIndicatorPainter extends CustomPainter {
 
     canvas.drawRRect(
       RRect.fromRectAndRadius(rect, const Radius.circular(2)),
-      glowPaint..color = glowPaint.color.withOpacity(0.3),
+      glowPaint..color = glowPaint.color.withValues(alpha: 0.3),
     );
   }
 
@@ -991,7 +990,7 @@ class PremiumEmptyState extends StatelessWidget {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: isDark
-                      ? [AppColors.glassDark, AppColors.glassDark.withOpacity(0.5)]
+                      ? [AppColors.glassDark, AppColors.glassDark.withValues(alpha: 0.5)]
                       : [AppColors.grey100, AppColors.grey50],
                 ),
                 border: Border.all(
@@ -999,7 +998,7 @@ class PremiumEmptyState extends StatelessWidget {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary.withOpacity(isDark ? 0.15 : 0.08),
+                    color: AppColors.primary.withValues(alpha: isDark ? 0.15 : 0.08),
                     blurRadius: 32,
                     spreadRadius: -8,
                   ),
@@ -1071,7 +1070,7 @@ class GradientIconBox extends StatelessWidget {
         borderRadius: BorderRadius.circular(borderRadius),
         boxShadow: [
           BoxShadow(
-            color: (gradient as LinearGradient).colors.first.withOpacity(0.35),
+            color: (gradient as LinearGradient).colors.first.withValues(alpha: 0.35),
             blurRadius: 12,
             offset: const Offset(0, 4),
             spreadRadius: -2,
@@ -1144,11 +1143,11 @@ class _StatusDotState extends State<StatusDot>
             width: widget.size,
             height: widget.size,
             decoration: BoxDecoration(
-              color: widget.color.withOpacity(opacity),
+              color: widget.color.withValues(alpha: opacity),
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: widget.color.withOpacity(0.4 * opacity),
+                  color: widget.color.withValues(alpha: 0.4 * opacity),
                   blurRadius: 8,
                   spreadRadius: 1,
                 ),

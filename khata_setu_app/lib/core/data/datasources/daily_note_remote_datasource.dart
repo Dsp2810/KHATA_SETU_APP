@@ -1,6 +1,5 @@
-import 'package:flutter/foundation.dart';
-
 import '../../network/api_service.dart';
+import '../../utils/app_logger.dart';
 import '../models/daily_note_model.dart';
 
 /// Remote data source for daily notes backed by the backend API.
@@ -54,7 +53,7 @@ class DailyNoteRemoteDataSource {
         currentPage: pagination['page'] as int? ?? page,
       );
     } catch (e) {
-      debugPrint('DailyNoteRemoteDataSource.getNotes error: $e');
+      AppLogger.error('DailyNoteRemoteDataSource.getNotes error: $e');
       rethrow;
     }
   }

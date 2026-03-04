@@ -114,7 +114,7 @@ class AppTheme {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
-        borderSide: BorderSide(color: AppColors.borderLight.withOpacity(0.5)),
+        borderSide: BorderSide(color: AppColors.borderLight.withValues(alpha: 0.5)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -156,7 +156,7 @@ class AppTheme {
     chipTheme: ChipThemeData(
       backgroundColor: AppColors.glassLight,
       selectedColor: AppColors.primarySurface,
-      side: BorderSide(color: AppColors.borderLight.withOpacity(0.5)),
+      side: BorderSide(color: AppColors.borderLight.withValues(alpha: 0.5)),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.circular)),
       labelStyle: AppTextStyles.labelMedium.copyWith(color: AppColors.textPrimaryLight),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -271,7 +271,7 @@ class AppTheme {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
-        borderSide: BorderSide(color: AppColors.borderDark.withOpacity(0.5)),
+        borderSide: BorderSide(color: AppColors.borderDark.withValues(alpha: 0.5)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -309,7 +309,7 @@ class AppTheme {
     chipTheme: ChipThemeData(
       backgroundColor: AppColors.glassDark,
       selectedColor: const Color(0xFF2A2550),
-      side: BorderSide(color: AppColors.borderDark.withOpacity(0.5)),
+      side: BorderSide(color: AppColors.borderDark.withValues(alpha: 0.5)),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.circular)),
       labelStyle: AppTextStyles.labelMedium.copyWith(color: AppColors.textPrimaryDark),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -621,11 +621,11 @@ class SurfaceCard extends StatelessWidget {
     Widget card = Container(
       margin: margin,
       decoration: BoxDecoration(
-        color: gradient != null ? null : (useFrost ? effectiveColor.withOpacity(isDark ? 0.65 : 0.9) : effectiveColor),
+        color: gradient != null ? null : (useFrost ? effectiveColor.withValues(alpha: isDark ? 0.65 : 0.9) : effectiveColor),
         borderRadius: BorderRadius.circular(borderRadius),
         border: borderColor != null
             ? Border.all(color: borderColor!)
-            : (isDark ? Border.all(color: context.glassBorderColor.withOpacity(0.4)) : null),
+            : (isDark ? Border.all(color: context.glassBorderColor.withValues(alpha: 0.4)) : null),
         boxShadow: isDark ? null : context.cardShadow,
         gradient: gradient ?? (useFrost ? context.glassGradient : null),
       ),
@@ -814,10 +814,10 @@ Future<T?> showGlassBottomSheet<T>({
           bottom: AppSpacing.navClearance + 8, // Float above nav bar
         ),
         decoration: BoxDecoration(
-          color: ctx.sheetColor.withOpacity(isDark ? 0.92 : 1.0),
+          color: ctx.sheetColor.withValues(alpha: isDark ? 0.92 : 1.0),
           borderRadius: BorderRadius.circular(AppRadius.xl),
           border: isDark
-              ? Border.all(color: ctx.glassBorderColor.withOpacity(0.4))
+              ? Border.all(color: ctx.glassBorderColor.withValues(alpha: 0.4))
               : null,
           boxShadow: ctx.sheetShadow,
         ),

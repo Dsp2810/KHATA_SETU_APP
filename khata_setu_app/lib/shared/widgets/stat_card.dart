@@ -44,7 +44,7 @@ class StatCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppRadius.lg),
           boxShadow: [
             BoxShadow(
-              color: AppColors.black.withOpacity(context.isDark ? 0.3 : 0.08),
+              color: AppColors.black.withValues(alpha: context.isDark ? 0.3 : 0.08),
               blurRadius: 20,
               offset: const Offset(0, 4),
             ),
@@ -59,7 +59,7 @@ class StatCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(AppSpacing.sm),
                   decoration: BoxDecoration(
-                    color: (iconColor ?? AppColors.primary).withOpacity(0.1),
+                    color: (iconColor ?? AppColors.primary).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
                   child: Icon(
@@ -69,7 +69,7 @@ class StatCard extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
-                if (suffixWidget != null) suffixWidget!,
+                ?suffixWidget,
                 if (showTrend && trendPercentage != null)
                   _buildTrendBadge(),
               ],
@@ -113,7 +113,7 @@ class StatCard extends StatelessWidget {
         vertical: AppSpacing.xxs,
       ),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppRadius.xs),
       ),
       child: Row(
@@ -169,7 +169,7 @@ class QuickActionCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(AppSpacing.sm),
               decoration: BoxDecoration(
-                color: actionColor.withOpacity(0.1),
+                color: actionColor.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(

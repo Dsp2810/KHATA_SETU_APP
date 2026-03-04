@@ -7,7 +7,7 @@ class ApiConstants {
   // Base URLs per environment
   static const String _devBaseUrl = 'http://192.168.0.122:3000/api/v1';
   static const String _dockerBaseUrl = 'http://10.0.2.2:3000/api/v1'; // Android emulator → host Docker
-  static const String _prodBaseUrl = 'https://api.khatasetu.com/api/v1';
+  static const String _prodBaseUrl = 'https://khata-setu-app.onrender.com/api/v1';
 
   /// Active base URL - automatically selected by ENV:
   ///   flutter run --dart-define=ENV=dev       → local LAN IP (default)
@@ -58,7 +58,6 @@ class StorageKeys {
   // Settings
   static const String themeMode = 'theme_mode';
   static const String language = 'language';
-  static const String biometricEnabled = 'biometric_enabled';
 
   // Offline
   static const String pendingSyncQueue = 'pending_sync_queue';
@@ -80,10 +79,8 @@ class AppConstants {
   static const int minPasswordLength = 8;
   static const int maxNameLength = 100;
   static const int phoneLength = 10;
-  static const int otpLength = 6;
 
   // Timeouts
-  static const Duration otpResendTimeout = Duration(seconds: 60);
   static const Duration sessionTimeout = Duration(minutes: 15);
   static const Duration syncInterval = Duration(minutes: 5);
 
@@ -107,16 +104,10 @@ class RouteConstants {
 
   // Auth Routes
   static const String splash = '/';
-  static const String onboarding = '/onboarding';
   static const String login = '/login';
   static const String register = '/register';
-  static const String verifyOtp = '/verify-otp';
-  static const String forgotPassword = '/forgot-password';
-  static const String resetPassword = '/reset-password';
-  static const String setPin = '/set-pin';
 
   // Main Routes
-  static const String home = '/home';
   static const String dashboard = '/dashboard';
 
   // Customer Routes
@@ -128,40 +119,19 @@ class RouteConstants {
   // Ledger Routes
   static const String ledger = '/ledger';
   static const String addTransaction = '/ledger/add';
-  static const String transactionDetails = '/ledger/:id';
-
-  // Payment Routes
-  static const String payments = '/payments';
-  static const String collectPayment = '/payments/collect';
-  static const String paymentSuccess = '/payments/success';
 
   // Billing Routes
   static const String billing = '/billing';
-  static const String todayBills = '/billing/today';
 
   // Inventory Routes
   static const String inventory = '/inventory';
-  static const String productDetails = '/inventory/:id';
   static const String addProduct = '/inventory/add';
-  static const String editProduct = '/inventory/:id/edit';
-  static const String stockAdjustment = '/inventory/:id/adjust';
-
-  // Reminder Routes
-  static const String reminders = '/reminders';
-  static const String addReminder = '/reminders/add';
-  static const String reminderDetails = '/reminders/:id';
 
   // Reports Routes
   static const String reports = '/reports';
-  static const String salesReport = '/reports/sales';
-  static const String customerReport = '/reports/customer';
 
   // Settings Routes
   static const String settings = '/settings';
-  static const String profile = '/settings/profile';
-  static const String shopSettings = '/settings/shop';
-  static const String language = '/settings/language';
-  static const String about = '/settings/about';
 
   // Notifications Route
   static const String notifications = '/notifications';

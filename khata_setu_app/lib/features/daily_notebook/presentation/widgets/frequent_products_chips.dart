@@ -35,7 +35,7 @@ class FrequentProductsChips extends StatelessWidget {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: products.length,
-            separatorBuilder: (_, __) =>
+            separatorBuilder: (_, _) =>
                 const SizedBox(width: AppSpacing.xs),
             itemBuilder: (context, index) {
               final name = products[index];

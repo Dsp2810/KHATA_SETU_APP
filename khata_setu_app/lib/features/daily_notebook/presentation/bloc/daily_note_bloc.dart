@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rxdart/rxdart.dart';
 
 import '../../../../core/data/models/daily_note_model.dart';
 import '../../../../core/data/repositories/daily_note_repository.dart';
+import '../../../../core/utils/app_logger.dart';
 import 'daily_note_event.dart';
 import 'daily_note_state.dart';
 
@@ -113,7 +113,7 @@ class DailyNoteBloc extends Bloc<DailyNoteEvent, DailyNoteState> {
       ));
     } catch (e) {
       emit(current.copyWith(isLoadingMore: false));
-      debugPrint('DailyNoteBloc.loadMore error: $e');
+      AppLogger.error('DailyNoteBloc.loadMore error: $e');
     }
   }
 
@@ -159,7 +159,7 @@ class DailyNoteBloc extends Bloc<DailyNoteEvent, DailyNoteState> {
         searchQuery: search ?? '',
         filters: filters,
       ));
-      debugPrint('DailyNoteBloc.refresh error: $e');
+      AppLogger.error('DailyNoteBloc.refresh error: $e');
     }
   }
 
@@ -369,7 +369,7 @@ class DailyNoteBloc extends Bloc<DailyNoteEvent, DailyNoteState> {
       // This prevents any race conditions with state checks.
       emit(const DailyNoteInitial());
     } catch (e) {
-      debugPrint('DailyNoteBloc.save error: $e');
+      AppLogger.error('DailyNoteBloc.save error: $e');
       emit(DailyNoteError('Failed to save: $e'));
       emit(current.copyWith(isSaving: false));
     }
@@ -536,7 +536,7 @@ class DailyNoteBloc extends Bloc<DailyNoteEvent, DailyNoteState> {
         emit(current.copyWith(summary: summary));
       }
     } catch (e) {
-      debugPrint('DailyNoteBloc.loadSummary error: $e');
+      AppLogger.error('DailyNoteBloc.loadSummary error: $e');
     }
   }
 }

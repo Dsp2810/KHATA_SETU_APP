@@ -190,7 +190,7 @@ class _LedgerPageState extends State<LedgerPage> with TickerProviderStateMixin {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Icon(Icons.error_outline_rounded, size: 56,
-                                        color: AppColors.error.withOpacity(0.6)),
+                                        color: AppColors.error.withValues(alpha: 0.6)),
                                     const SizedBox(height: 16),
                                     Text(txnState.message,
                                         style: const TextStyle(fontSize: 14, color: AppColors.grey500),
@@ -620,7 +620,7 @@ class _LedgerPageState extends State<LedgerPage> with TickerProviderStateMixin {
           borderRadius: BorderRadius.circular(AppRadius.md),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withOpacity(0.3),
+              color: AppColors.primary.withValues(alpha: 0.3),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -731,7 +731,7 @@ class _TransactionTypeBottomSheet extends StatelessWidget {
             _TransactionTypeOption(
               icon: Icons.arrow_upward_rounded,
               iconColor: AppColors.error,
-              backgroundColor: AppColors.error.withOpacity(0.1),
+              backgroundColor: AppColors.error.withValues(alpha: 0.1),
               title: context.l10n.addCredit,
               subtitle: context.l10n.customerTakesGoodsOnCredit,
               onTap: onCreditSelected,
@@ -742,7 +742,7 @@ class _TransactionTypeBottomSheet extends StatelessWidget {
             _TransactionTypeOption(
               icon: Icons.arrow_downward_rounded,
               iconColor: AppColors.success,
-              backgroundColor: AppColors.success.withOpacity(0.1),
+              backgroundColor: AppColors.success.withValues(alpha: 0.1),
               title: context.l10n.addPayment,
               subtitle: context.l10n.customerPaysMoney,
               onTap: onPaymentSelected,
@@ -931,12 +931,12 @@ class _DailyNotebookSection extends StatelessWidget {
                 horizontal: AppSpacing.md, vertical: AppSpacing.sm),
             decoration: BoxDecoration(
               gradient: LinearGradient(colors: [
-                AppColors.primary.withOpacity(0.08),
-                AppColors.primary.withOpacity(0.02),
+                AppColors.primary.withValues(alpha: 0.08),
+                AppColors.primary.withValues(alpha: 0.02),
               ]),
               borderRadius: BorderRadius.circular(AppRadius.sm),
               border: Border.all(
-                  color: AppColors.primary.withOpacity(0.15)),
+                  color: AppColors.primary.withValues(alpha: 0.15)),
             ),
             child: Row(
               children: [
@@ -1015,7 +1015,7 @@ class _DailySummaryStrip extends StatelessWidget {
                       : net < 0
                           ? AppColors.success
                           : AppColors.grey400)
-                  .withOpacity(0.12),
+                  .withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
@@ -1095,7 +1095,7 @@ class _NotebookEntry extends StatelessWidget {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                          color: color.withOpacity(0.4),
+                          color: color.withValues(alpha: 0.4),
                           blurRadius: 4,
                           offset: const Offset(0, 1)),
                     ],
@@ -1278,8 +1278,8 @@ class _SummaryItem extends StatelessWidget {
           padding: const EdgeInsets.all(5),
           decoration: BoxDecoration(
             gradient: LinearGradient(colors: [
-              color.withOpacity(0.2),
-              color.withOpacity(0.05)
+              color.withValues(alpha: 0.2),
+              color.withValues(alpha: 0.05)
             ]),
             shape: BoxShape.circle,
           ),
@@ -1341,7 +1341,7 @@ class _FilterChip extends StatelessWidget {
             gradient: isSelected
                 ? LinearGradient(colors: [
                     chipColor,
-                    chipColor.withOpacity(0.8)
+                    chipColor.withValues(alpha: 0.8)
                   ])
                 : null,
             color: isSelected ? null : context.glassColor,
@@ -1349,12 +1349,12 @@ class _FilterChip extends StatelessWidget {
                 BorderRadius.circular(AppRadius.circular),
             border: Border.all(
                 color: isSelected
-                    ? chipColor.withOpacity(0.3)
+                    ? chipColor.withValues(alpha: 0.3)
                     : context.glassBorderColor),
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                        color: chipColor.withOpacity(0.3),
+                        color: chipColor.withValues(alpha: 0.3),
                         blurRadius: 8,
                         spreadRadius: -2)
                   ]
@@ -1382,7 +1382,7 @@ class _FilterChip extends StatelessWidget {
                   horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? Colors.white.withOpacity(0.2)
+                    ? Colors.white.withValues(alpha: 0.2)
                     : context.glassBorderColor,
                 borderRadius: BorderRadius.circular(10),
               ),

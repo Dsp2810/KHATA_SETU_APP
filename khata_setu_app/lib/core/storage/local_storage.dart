@@ -26,15 +26,6 @@ class LocalStorageService {
     return _prefs.getString(StorageKeys.language) ?? 'en';
   }
 
-  // Biometric
-  Future<void> setBiometricEnabled(bool enabled) async {
-    await _prefs.setBool(StorageKeys.biometricEnabled, enabled);
-  }
-
-  bool isBiometricEnabled() {
-    return _prefs.getBool(StorageKeys.biometricEnabled) ?? false;
-  }
-
   // Last Sync Time
   Future<void> saveLastSyncTime(DateTime time) async {
     await _prefs.setString(StorageKeys.lastSyncTime, time.toIso8601String());

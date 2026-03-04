@@ -168,7 +168,7 @@ class _CustomerDetailsPageState extends State<CustomerDetailsPage>
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: AppColors.white.withOpacity(0.2),
+            color: AppColors.white.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(12),
           ),
           child: const Icon(Icons.arrow_back, color: AppColors.white, size: 20),
@@ -180,7 +180,7 @@ class _CustomerDetailsPageState extends State<CustomerDetailsPage>
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.white.withOpacity(0.2),
+              color: AppColors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(Icons.edit, color: AppColors.white, size: 20),
@@ -193,7 +193,7 @@ class _CustomerDetailsPageState extends State<CustomerDetailsPage>
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.white.withOpacity(0.2),
+              color: AppColors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
@@ -214,7 +214,7 @@ class _CustomerDetailsPageState extends State<CustomerDetailsPage>
               colors: [
                 AppColors.primary,
                 AppColors.primaryDark,
-                AppColors.primary.withOpacity(0.8),
+                AppColors.primary.withValues(alpha: 0.8),
               ],
             ),
           ),
@@ -237,7 +237,7 @@ class _CustomerDetailsPageState extends State<CustomerDetailsPage>
                           child: CircularProgressIndicator(
                             value: customer.trustScore / 100,
                             strokeWidth: 3,
-                            backgroundColor: AppColors.white.withOpacity(0.2),
+                            backgroundColor: AppColors.white.withValues(alpha: 0.2),
                             valueColor: AlwaysStoppedAnimation(trustColor),
                           ),
                         ),
@@ -288,10 +288,10 @@ class _CustomerDetailsPageState extends State<CustomerDetailsPage>
                         vertical: AppSpacing.sm,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.white.withOpacity(0.15),
+                        color: AppColors.white.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(AppRadius.lg),
                         border: Border.all(
-                          color: AppColors.white.withOpacity(0.2),
+                          color: AppColors.white.withValues(alpha: 0.2),
                         ),
                       ),
                       child: Row(
@@ -307,7 +307,7 @@ class _CustomerDetailsPageState extends State<CustomerDetailsPage>
                           Container(
                             width: 1,
                             height: 36,
-                            color: AppColors.white.withOpacity(0.3),
+                            color: AppColors.white.withValues(alpha: 0.3),
                           ),
                           _buildHeaderStat(
                             context.l10n.trustLabel,
@@ -317,7 +317,7 @@ class _CustomerDetailsPageState extends State<CustomerDetailsPage>
                           Container(
                             width: 1,
                             height: 36,
-                            color: AppColors.white.withOpacity(0.3),
+                            color: AppColors.white.withValues(alpha: 0.3),
                           ),
                           _buildHeaderStat(
                             context.l10n.limitLabel,
@@ -445,7 +445,7 @@ class _CustomerDetailsPageState extends State<CustomerDetailsPage>
                 width: 12,
                 height: 12,
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.2),
+                  color: color.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                   border: Border.all(color: color, width: 2),
                 ),
@@ -461,10 +461,10 @@ class _CustomerDetailsPageState extends State<CustomerDetailsPage>
               decoration: BoxDecoration(
                 color: context.cardColor,
                 borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(color: color.withOpacity(0.2)),
+                border: Border.all(color: color.withValues(alpha: 0.2)),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.black.withOpacity(0.04),
+                    color: AppColors.black.withValues(alpha: 0.04),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -476,7 +476,7 @@ class _CustomerDetailsPageState extends State<CustomerDetailsPage>
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: color.withOpacity(0.1),
+                      color: color.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
@@ -515,7 +515,7 @@ class _CustomerDetailsPageState extends State<CustomerDetailsPage>
                                   vertical: 1,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: AppColors.primary.withOpacity(0.1),
+                                  color: AppColors.primary.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
@@ -659,7 +659,7 @@ class _CustomerDetailsPageState extends State<CustomerDetailsPage>
                 borderRadius: BorderRadius.circular(AppRadius.lg),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.black.withOpacity(isDark ? 0.2 : 0.1),
+                    color: AppColors.black.withValues(alpha: isDark ? 0.2 : 0.1),
                     blurRadius: 10,
                     offset: const Offset(0, 2),
                   ),
@@ -683,7 +683,7 @@ class _CustomerDetailsPageState extends State<CustomerDetailsPage>
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.1),
+                          color: AppColors.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -761,7 +761,7 @@ class _CustomerDetailsPageState extends State<CustomerDetailsPage>
                 borderRadius: BorderRadius.circular(AppRadius.lg),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.black.withOpacity(isDark ? 0.2 : 0.1),
+                    color: AppColors.black.withValues(alpha: isDark ? 0.2 : 0.1),
                     blurRadius: 10,
                     offset: const Offset(0, 2),
                   ),
@@ -863,7 +863,7 @@ class _CustomerDetailsPageState extends State<CustomerDetailsPage>
                 borderRadius: BorderRadius.circular(AppRadius.lg),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.black.withOpacity(isDark ? 0.2 : 0.1),
+                    color: AppColors.black.withValues(alpha: isDark ? 0.2 : 0.1),
                     blurRadius: 10,
                     offset: const Offset(0, 2),
                   ),
@@ -939,7 +939,7 @@ class _CustomerDetailsPageState extends State<CustomerDetailsPage>
                 child: LinearProgressIndicator(
                   value: v,
                   minHeight: 8,
-                  backgroundColor: color.withOpacity(0.12),
+                  backgroundColor: color.withValues(alpha: 0.12),
                   valueColor: AlwaysStoppedAnimation(color),
                 ),
               );
@@ -962,10 +962,10 @@ class _CustomerDetailsPageState extends State<CustomerDetailsPage>
       decoration: BoxDecoration(
         color: context.cardColor,
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(0.04),
+            color: AppColors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -977,7 +977,7 @@ class _CustomerDetailsPageState extends State<CustomerDetailsPage>
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: color, size: 20),
@@ -1082,7 +1082,7 @@ class _CustomerDetailsPageState extends State<CustomerDetailsPage>
         borderRadius: BorderRadius.circular(AppRadius.lg),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(isDark ? 0.2 : 0.1),
+            color: AppColors.black.withValues(alpha: isDark ? 0.2 : 0.1),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -1104,7 +1104,7 @@ class _CustomerDetailsPageState extends State<CustomerDetailsPage>
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
+                      color: AppColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(item.icon, size: 18, color: AppColors.primary),
@@ -1148,7 +1148,7 @@ class _CustomerDetailsPageState extends State<CustomerDetailsPage>
         borderRadius: BorderRadius.circular(AppRadius.lg),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(isDark ? 0.2 : 0.1),
+            color: AppColors.black.withValues(alpha: isDark ? 0.2 : 0.1),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -1234,7 +1234,7 @@ class _CustomerDetailsPageState extends State<CustomerDetailsPage>
             width: iconSize,
             height: iconSize,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(icon, color: color, size: iconSize * 0.46),
@@ -1312,11 +1312,15 @@ class _CustomerDetailsPageState extends State<CustomerDetailsPage>
                   AppColors.primary,
                   onTap: () async {
                     Navigator.pop(ctx);
+                    // Capture context-dependent values before async gaps
+                    final txnBloc = context.read<TransactionBloc>();
+                    final l10n = context.l10n;
+                    final locale = Localizations.localeOf(context).languageCode;
                     try {
                       final secureStorage = getIt<SecureStorageService>();
                       final shopName = await secureStorage.read('shop_name') ?? 'My Shop';
 
-                      final txnState = context.read<TransactionBloc>().state;
+                      final txnState = txnBloc.state;
                       List<TransactionModel> transactions = [];
                       if (txnState is TransactionLoaded) {
                         transactions = txnState.transactions;
@@ -1345,14 +1349,14 @@ class _CustomerDetailsPageState extends State<CustomerDetailsPage>
                         transactions: reportTxns,
                         openingBalance: 0,
                         closingBalance: customer.currentBalance,
-                        l10n: context.l10n,
-                        locale: Localizations.localeOf(context).languageCode,
+                        l10n: l10n,
+                        locale: locale,
                       );
 
                       await PdfReportService.shareReport(
                         Uint8List.fromList(bytes),
                         'statement_${customer.name.replaceAll(' ', '_')}.pdf',
-                        l10n: context.l10n,
+                        l10n: l10n,
                       );
                     } catch (e) {
                       if (mounted) {
@@ -1472,7 +1476,7 @@ class _CustomerDetailsPageState extends State<CustomerDetailsPage>
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon, color: color, size: 20),

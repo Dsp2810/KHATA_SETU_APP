@@ -32,8 +32,8 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
   ) async {
     emit(const NotificationLoading());
     try {
-      final notifications = await _dataSource.getAll();
-      final unreadCount = await _dataSource.getUnreadCount();
+      final notifications = _dataSource.getAll();
+      final unreadCount = _dataSource.getUnreadCount();
       emit(NotificationLoaded(
         notifications: notifications,
         unreadCount: unreadCount,
@@ -48,8 +48,8 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     Emitter<NotificationState> emit,
   ) async {
     try {
-      final notifications = await _dataSource.getAll();
-      final unreadCount = await _dataSource.getUnreadCount();
+      final notifications = _dataSource.getAll();
+      final unreadCount = _dataSource.getUnreadCount();
       emit(NotificationLoaded(
         notifications: notifications,
         unreadCount: unreadCount,

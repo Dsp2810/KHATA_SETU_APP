@@ -9,7 +9,6 @@ import '../../../../core/utils/app_formatter.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
-import '../bloc/biometric_cubit.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -151,35 +150,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
 
     final state = authBloc.state;
     if (state is Authenticated || state is AuthenticatedOffline) {
-      // Check biometric requirement
-      final biometricCubit = context.read<BiometricCubit>();
-      final shouldBiometric = await biometricCubit.shouldRequireBiometric();
-
-      if (!mounted) return;
-
-      if (shouldBiometric) {
-        final l10n = context.l10n;
-        try {
-          final authenticated = await biometricCubit.authenticate(
-            localizedReason: l10n.biometricAuthReason,
-          );
-
-          if (!mounted) return;
-
-          if (authenticated) {
-            context.go(RouteConstants.dashboard);
-          } else {
-            // Biometric failed or cancelled → fall back to login
-            context.go(RouteConstants.login);
-          }
-        } catch (e) {
-          // Any error during biometric → go to login
-          debugPrint('Biometric auth error in splash: $e');
-          if (mounted) context.go(RouteConstants.login);
-        }
-      } else {
-        context.go(RouteConstants.dashboard);
-      }
+      context.go(RouteConstants.dashboard);
     } else {
       context.go(RouteConstants.login);
     }
@@ -247,12 +218,12 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                           borderRadius: BorderRadius.circular(32),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.black.withOpacity(0.2),
+                              color: AppColors.black.withValues(alpha: 0.2),
                               blurRadius: 30,
                               offset: const Offset(0, 12),
                             ),
                             BoxShadow(
-                              color: AppColors.primaryLight.withOpacity(0.4),
+                              color: AppColors.primaryLight.withValues(alpha: 0.4),
                               blurRadius: 60,
                               spreadRadius: 5,
                             ),
@@ -268,7 +239,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(26),
                                 border: Border.all(
-                                  color: AppColors.primary.withOpacity(0.1),
+                                  color: AppColors.primary.withValues(alpha: 0.1),
                                   width: 2,
                                 ),
                               ),
@@ -324,7 +295,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                                   vertical: 6,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: AppColors.white.withOpacity(0.15),
+                                  color: AppColors.white.withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(
@@ -363,7 +334,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                                   style: TextStyle(
                                     fontFamily: AppTextStyles.fontFamily,
                                     fontSize: 12,
-                                    color: AppColors.white.withOpacity(0.7),
+                                    color: AppColors.white.withValues(alpha: 0.7),
                                   ),
                                 ),
                               ],
@@ -396,7 +367,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                   style: TextStyle(
                     fontFamily: AppTextStyles.fontFamily,
                     fontSize: 12,
-                    color: AppColors.white.withOpacity(0.5),
+                    color: AppColors.white.withValues(alpha: 0.5),
                   ),
                 ),
               ),

@@ -249,7 +249,7 @@ class _UpiQrDisplayPageState extends State<UpiQrDisplayPage>
               if (_brightnessMaxed)
                 Positioned.fill(
                   child: Container(
-                    color: Colors.white.withOpacity(0.15),
+                    color: Colors.white.withValues(alpha: 0.15),
                   ),
                 ),
 

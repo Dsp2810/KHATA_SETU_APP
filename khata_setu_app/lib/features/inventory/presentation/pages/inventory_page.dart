@@ -146,7 +146,7 @@ class _InventoryPageState extends State<InventoryPage>
                 borderRadius: BorderRadius.circular(AppRadius.circular),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary.withOpacity(0.4),
+                    color: AppColors.primary.withValues(alpha: 0.4),
                     blurRadius: 16,
                     offset: const Offset(0, 6),
                   ),
@@ -154,9 +154,10 @@ class _InventoryPageState extends State<InventoryPage>
               ),
               child: FloatingActionButton.extended(
                 onPressed: () async {
+                  final bloc = context.read<InventoryBloc>();
                   await context.push('/inventory/add');
                   // Reload products after returning from add page
-                  context.read<InventoryBloc>().add(const LoadProducts());
+                  bloc.add(const LoadProducts());
                 },
                 backgroundColor: Colors.transparent,
                 elevation: 0,
@@ -191,7 +192,7 @@ class _InventoryPageState extends State<InventoryPage>
           children: [
             Icon(Icons.error_outline_rounded, 
                 size: 56, 
-                color: AppColors.error.withOpacity(0.6)),
+                color: AppColors.error.withValues(alpha: 0.6)),
             const SizedBox(height: 16),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -221,13 +222,13 @@ class _InventoryPageState extends State<InventoryPage>
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.inventory_2_outlined, 
                 size: 64, 
-                color: AppColors.primary.withOpacity(0.6),
+                color: AppColors.primary.withValues(alpha: 0.6),
               ),
             ),
             const SizedBox(height: 24),
@@ -253,7 +254,7 @@ class _InventoryPageState extends State<InventoryPage>
                 borderRadius: BorderRadius.circular(AppRadius.lg),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary.withOpacity(0.3),
+                    color: AppColors.primary.withValues(alpha: 0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -261,8 +262,9 @@ class _InventoryPageState extends State<InventoryPage>
               ),
               child: ElevatedButton.icon(
                 onPressed: () async {
+                  final bloc = context.read<InventoryBloc>();
                   await context.push('/inventory/add');
-                  context.read<InventoryBloc>().add(const LoadProducts());
+                  bloc.add(const LoadProducts());
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
@@ -314,7 +316,7 @@ class _InventoryPageState extends State<InventoryPage>
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: 5,
-              itemBuilder: (_, __) => Container(
+              itemBuilder: (_, _) => Container(
                 width: 80,
                 margin: const EdgeInsets.only(right: AppSpacing.xs),
                 decoration: BoxDecoration(
@@ -335,7 +337,7 @@ class _InventoryPageState extends State<InventoryPage>
                 mainAxisSpacing: AppSpacing.sm,
               ),
               itemCount: 6,
-              itemBuilder: (_, __) => Container(
+              itemBuilder: (_, _) => Container(
                 decoration: BoxDecoration(
                   color: isDark ? AppColors.grey800 : AppColors.grey200,
                   borderRadius: BorderRadius.circular(AppRadius.md),
@@ -414,7 +416,7 @@ class _InventoryPageState extends State<InventoryPage>
                   gradient: LinearGradient(
                     colors: [
                       AppColors.warning,
-                      AppColors.warning.withOpacity(0.7),
+                      AppColors.warning.withValues(alpha: 0.7),
                     ],
                   ),
                 ),
@@ -558,7 +560,7 @@ class _InventoryPageState extends State<InventoryPage>
                       boxShadow: isSelected
                           ? [
                               BoxShadow(
-                                color: AppColors.primary.withOpacity(0.3),
+                                color: AppColors.primary.withValues(alpha: 0.3),
                                 blurRadius: 8,
                                 spreadRadius: -2,
                               ),
@@ -682,7 +684,7 @@ class _InventoryPageState extends State<InventoryPage>
                     borderRadius: BorderRadius.circular(AppRadius.xl),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primary.withOpacity(0.4),
+                        color: AppColors.primary.withValues(alpha: 0.4),
                         blurRadius: 20,
                         offset: const Offset(0, 8),
                       ),
@@ -693,7 +695,7 @@ class _InventoryPageState extends State<InventoryPage>
                       Container(
                         padding: const EdgeInsets.all(AppSpacing.sm),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(AppRadius.sm),
                         ),
                         child: Badge(
@@ -779,8 +781,8 @@ class _InventoryPageState extends State<InventoryPage>
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                context.cardColor.withOpacity(0.95),
-                context.backgroundColor.withOpacity(0.98),
+                context.cardColor.withValues(alpha: 0.95),
+                context.backgroundColor.withValues(alpha: 0.98),
               ],
             ),
             borderRadius: const BorderRadius.vertical(
@@ -940,7 +942,7 @@ class _InventoryPageState extends State<InventoryPage>
                                     AppRadius.xl,
                                   ),
                                   border: Border.all(
-                                    color: AppColors.error.withOpacity(0.5),
+                                    color: AppColors.error.withValues(alpha: 0.5),
                                   ),
                                 ),
                                 child: Row(
@@ -1491,8 +1493,9 @@ class _GlassProductCard extends StatelessWidget {
                       ),
                       GestureDetector(
                         onTap: () {
-                          if (quantity < product.currentStock.toInt())
+                          if (quantity < product.currentStock.toInt()) {
                             cartManager.incrementQuantity(product.id);
+                          }
                         },
                         child: const Icon(
                           Icons.add_rounded,
@@ -1513,7 +1516,7 @@ class _GlassProductCard extends StatelessWidget {
                   gradient: LinearGradient(
                     colors: [
                       AppColors.warning,
-                      AppColors.warning.withOpacity(0.7),
+                      AppColors.warning.withValues(alpha: 0.7),
                     ],
                   ),
                 ),
@@ -1522,7 +1525,7 @@ class _GlassProductCard extends StatelessWidget {
               Positioned.fill(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.5),
+                    color: Colors.black.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(AppRadius.xl),
                   ),
                   child: Center(
@@ -1938,14 +1941,14 @@ class _GlassCheckoutSheetState extends State<_GlassCheckoutSheet> {
                       Switch(
                         value: _addToKhata,
                         onChanged: (v) => setState(() => _addToKhata = v),
-                        activeColor: AppColors.primary,
+                        activeThumbColor: AppColors.primary,
                       ),
                     ],
                   ),
                   if (_addToKhata) ...[
                     const SizedBox(height: AppSpacing.md),
                     DropdownButtonFormField<String>(
-                      value: _selectedCustomer,
+                      initialValue: _selectedCustomer,
                       dropdownColor: context.cardColor,
                       decoration: InputDecoration(
                         labelText: context.l10n.selectCustomer,

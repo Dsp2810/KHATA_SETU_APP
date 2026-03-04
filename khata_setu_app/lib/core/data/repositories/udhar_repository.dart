@@ -2,9 +2,9 @@ import 'dart:convert';
 
 import 'package:uuid/uuid.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:flutter/foundation.dart';
 import 'dart:io';
 
+import '../../utils/app_logger.dart';
 import '../datasources/udhar_local_datasource.dart';
 import '../datasources/udhar_remote_datasource.dart';
 import '../models/customer_model.dart';
@@ -37,7 +37,7 @@ class UdharRepository {
         }
         return remoteCustomers;
       } catch (e) {
-        debugPrint('Remote fetch failed, using local: $e');
+        AppLogger.warning('Remote fetch failed, using local: $e');
       }
     }
     return _local.getAllCustomers();
@@ -84,7 +84,7 @@ class UdharRepository {
         await _local.saveCustomer(remoteCustomer);
         return remoteCustomer;
       } catch (e) {
-        debugPrint('Remote create failed, saving locally: $e');
+        AppLogger.warning('Remote create failed, saving locally: $e');
       }
     }
 
@@ -118,7 +118,7 @@ class UdharRepository {
         });
         customer.synced = true;
       } catch (e) {
-        debugPrint('Remote update failed: $e');
+        AppLogger.warning('Remote update failed: $e');
         customer.synced = false;
       }
     } else {
@@ -132,7 +132,7 @@ class UdharRepository {
       try {
         await _remote!.deleteCustomer(id);
       } catch (e) {
-        debugPrint('Remote delete failed: $e');
+        AppLogger.warning('Remote delete failed: $e');
       }
     }
     await _local.deleteCustomer(id);
@@ -176,7 +176,7 @@ class UdharRepository {
         await _local.saveTransactionDirect(remoteTxn, customerId);
         return remoteTxn;
       } catch (e) {
-        debugPrint('Remote credit failed, saving locally: $e');
+        AppLogger.warning('Remote credit failed, saving locally: $e');
       }
     }
 
@@ -212,7 +212,7 @@ class UdharRepository {
         await _local.saveTransactionDirect(remoteTxn, customerId);
         return remoteTxn;
       } catch (e) {
-        debugPrint('Remote payment failed, saving locally: $e');
+        AppLogger.warning('Remote payment failed, saving locally: $e');
       }
     }
 
@@ -251,7 +251,7 @@ class UdharRepository {
       try {
         await _remote!.deleteLedgerEntry(lastTxn.id, reason: 'Undo');
       } catch (e) {
-        debugPrint('Remote undo failed: $e');
+        AppLogger.warning('Remote undo failed: $e');
       }
     }
 

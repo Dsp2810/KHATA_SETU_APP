@@ -64,7 +64,7 @@ class TransactionCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppRadius.md),
             boxShadow: [
               BoxShadow(
-                color: AppColors.black.withOpacity(context.isDark ? 0.2 : 0.04),
+                color: AppColors.black.withValues(alpha: context.isDark ? 0.2 : 0.04),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -76,7 +76,7 @@ class TransactionCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(AppSpacing.sm),
                 decoration: BoxDecoration(
-                  color: (isCredit ? AppColors.error : AppColors.success).withOpacity(0.1),
+                  color: (isCredit ? AppColors.error : AppColors.success).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
                 child: Icon(
@@ -192,7 +192,7 @@ class TransactionCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppRadius.xs),
       ),
       child: Row(

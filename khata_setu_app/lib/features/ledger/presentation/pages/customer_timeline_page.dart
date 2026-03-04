@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -263,10 +262,10 @@ class _CustomerTimelinePageState extends State<CustomerTimelinePage>
                     padding: const EdgeInsets.symmetric(
                         horizontal: AppSpacing.sm, vertical: AppSpacing.xxs),
                     decoration: BoxDecoration(
-                      color: AppColors.warning.withOpacity(0.15),
+                      color: AppColors.warning.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(AppRadius.sm),
                       border: Border.all(
-                          color: AppColors.warning.withOpacity(0.3)),
+                          color: AppColors.warning.withValues(alpha: 0.3)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -293,10 +292,10 @@ class _CustomerTimelinePageState extends State<CustomerTimelinePage>
                           horizontal: AppSpacing.sm,
                           vertical: AppSpacing.xxs),
                       decoration: BoxDecoration(
-                        color: AppColors.error.withOpacity(0.15),
+                        color: AppColors.error.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(AppRadius.sm),
                         border: Border.all(
-                            color: AppColors.error.withOpacity(0.3)),
+                            color: AppColors.error.withValues(alpha: 0.3)),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -371,7 +370,7 @@ class _CustomerTimelinePageState extends State<CustomerTimelinePage>
             borderRadius: BorderRadius.circular(AppRadius.circular),
             boxShadow: [
               BoxShadow(
-                  color: AppColors.error.withOpacity(0.4),
+                  color: AppColors.error.withValues(alpha: 0.4),
                   blurRadius: 12,
                   offset: const Offset(0, 4))
             ],
@@ -394,7 +393,7 @@ class _CustomerTimelinePageState extends State<CustomerTimelinePage>
             borderRadius: BorderRadius.circular(AppRadius.circular),
             boxShadow: [
               BoxShadow(
-                  color: AppColors.success.withOpacity(0.4),
+                  color: AppColors.success.withValues(alpha: 0.4),
                   blurRadius: 12,
                   offset: const Offset(0, 4))
             ],

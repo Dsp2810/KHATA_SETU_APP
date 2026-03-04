@@ -31,13 +31,13 @@ class EmptyState extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 icon,
                 size: 64,
-                color: AppColors.primary.withOpacity(0.6),
+                color: AppColors.primary.withValues(alpha: 0.6),
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -92,7 +92,7 @@ class LoadingOverlay extends StatelessWidget {
         child,
         if (isLoading)
           Container(
-            color: AppColors.black.withOpacity(0.3),
+            color: AppColors.black.withValues(alpha: 0.3),
             child: Center(
               child: Container(
                 padding: const EdgeInsets.all(AppSpacing.lg),
@@ -101,7 +101,7 @@ class LoadingOverlay extends StatelessWidget {
                   borderRadius: BorderRadius.circular(AppRadius.lg),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.black.withOpacity(0.2),
+                      color: AppColors.black.withValues(alpha: 0.2),
                       blurRadius: 20,
                     ),
                   ],
@@ -248,13 +248,13 @@ class ErrorState extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(
-                color: AppColors.error.withOpacity(0.1),
+                color: AppColors.error.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.error_outline,
                 size: 64,
-                color: AppColors.error.withOpacity(0.6),
+                color: AppColors.error.withValues(alpha: 0.6),
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
