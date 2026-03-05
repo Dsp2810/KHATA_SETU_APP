@@ -36,6 +36,10 @@ import '../../features/home/presentation/bloc/dashboard_cubit.dart';
 import '../data/datasources/notification_local_datasource.dart';
 import '../../features/notifications/presentation/bloc/notification_bloc.dart';
 import '../../features/sync/presentation/bloc/sync_cubit.dart';
+import '../../features/settings/presentation/bloc/backup_cubit.dart';
+import '../services/drive_service.dart';
+import '../services/backup_service.dart';
+import '../services/restore_service.dart';
 
 final getIt = GetIt.instance;
 
@@ -347,6 +351,27 @@ Future<void> _registerDailyNoteDependencies() async {
 
 Future<void> _registerSettingsDependencies() async {
   // ThemeCubit is registered in configureDependencies() since it's needed at app start
+
+  // Google Drive Backup services
+  getIt.registerLazySingleton<DriveService>(
+    () => DriveService(getIt<FlutterSecureStorage>()),
+  );
+  getIt.registerLazySingleton<BackupService>(
+    () => BackupService(getIt<FlutterSecureStorage>()),
+  );
+  getIt.registerLazySingleton<RestoreService>(
+    () => RestoreService(),
+  );
+
+  // BackupCubit — factory so each navigation creates fresh state
+  getIt.registerFactory<BackupCubit>(
+    () => BackupCubit(
+      driveService: getIt<DriveService>(),
+      backupService: getIt<BackupService>(),
+      restoreService: getIt<RestoreService>(),
+      localStorage: getIt<LocalStorageService>(),
+    ),
+  );
 }
 
 Future<void> _registerNotificationDependencies() async {

@@ -287,6 +287,12 @@ class _SettingsPageState extends State<SettingsPage> {
                           subtitle: context.l10n.exportBackupSubtitle,
                           onTap: () => _exportData(),
                         ),
+                        _buildSettingsTile(
+                          icon: Icons.cloud_done_outlined,
+                          title: 'Google Drive Backup',
+                          subtitle: 'Encrypt & backup to Google Drive',
+                          onTap: () => context.push(RouteConstants.backup),
+                        ),
                         _buildDangerTile(
                           icon: Icons.delete_forever_rounded,
                           title: context.l10n.clearAllData,

@@ -138,6 +138,7 @@ class RouteConstants {
 
   // UPI Routes
   static const String upiSetup = '/settings/upi-setup';
+  static const String backup = '/settings/backup';
   static const String upiQrDisplay = '/upi-qr';
 
   // Daily Notebook Routes

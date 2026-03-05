@@ -18,6 +18,7 @@ import '../../features/ledger/presentation/pages/customer_timeline_page.dart';
 import '../../features/inventory/presentation/pages/inventory_page.dart';
 import '../../features/inventory/presentation/pages/add_product_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
+import '../../features/settings/presentation/pages/backup_page.dart';
 import '../../features/reports/presentation/pages/reports_page.dart';
 import '../../features/billing/presentation/pages/smart_billing_page.dart';
 import '../../features/upi/presentation/pages/upi_setup_page.dart';
@@ -163,6 +164,11 @@ class AppRouter {
                 path: 'upi-setup',
                 parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) => const UpiSetupPage(),
+              ),
+              GoRoute(
+                path: 'backup',
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) => const BackupPage(),
               ),
             ],
           ),
