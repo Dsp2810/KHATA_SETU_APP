@@ -107,6 +107,7 @@ class SyncQueueLocalDataSource {
   }
 
   /// Find a queue item by localId and entityType (for dedup on re-enqueue).
+  /// Excludes already-synced items so the same operation isn't queued twice.
   SyncQueueItemModel? findByLocalId(String localId, SyncEntityType entityType) {
     return _box.values
         .where((item) =>
@@ -114,6 +115,19 @@ class SyncQueueLocalDataSource {
             item.entityType == entityType &&
             item.status != SyncItemStatus.synced)
         .firstOrNull;
+  }
+
+  /// Look up the server-assigned ID for a locally-created entity.
+  /// Searches ALL items (including synced) because the serverId mapping
+  /// is needed after a create has already been marked synced.
+  String? findServerIdByLocalId(String localId, SyncEntityType entityType) {
+    final item = _box.values
+        .where((item) =>
+            item.localId == localId &&
+            item.entityType == entityType &&
+            item.serverId != null)
+        .firstOrNull;
+    return item?.serverId;
   }
 
   /// Get all items (for debug / settings UI).

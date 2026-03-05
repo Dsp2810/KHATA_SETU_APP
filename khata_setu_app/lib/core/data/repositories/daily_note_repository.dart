@@ -383,13 +383,12 @@ class DailyNoteRepository {
         if (n.description != null) 'description': n.description,
         'priority': n.priority,
         'tags': n.tags,
-        'items': n.items
+        'structuredItems': n.items
             .map((i) => {
                   'productName': i.productName,
                   'quantity': i.quantity,
                   'unitPrice': i.unitPrice,
                   if (i.unit != null) 'unit': i.unit,
-                  'timeLabel': i.timeLabel,
                   if (i.productId != null) 'productId': i.productId,
                 })
             .toList(),

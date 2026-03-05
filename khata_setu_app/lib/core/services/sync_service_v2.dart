@@ -234,6 +234,12 @@ class SyncService {
 
   // ── Entity-specific sync handlers ─────────────────────────
 
+  /// Resolve the server-assigned ID for a locally-created entity.
+  /// Falls back to `localId` if no mapping exists (entity was created online).
+  String _resolveServerId(String localId, SyncEntityType entityType) {
+    return _queue.findServerIdByLocalId(localId, entityType) ?? localId;
+  }
+
   Future<void> _syncCustomer(SyncQueueItemModel item) async {
     final remote = _udharRemote;
     final local = _udharLocal;
@@ -250,7 +256,7 @@ class SyncService {
           phone: payload['phone'] as String,
           email: payload['email'] as String?,
           address: payload['address'] as String?,
-          creditLimit: (payload['creditLimit'] as num?)?.toDouble() ?? 5000.0,
+          creditLimit: (payload['creditLimit'] as num?)?.toDouble(),
           avatar: payload['avatar'] as String?,
           notes: payload['notes'] as String?,
         );
@@ -268,7 +274,10 @@ class SyncService {
         break;
 
       case SyncOperation.update:
-        await remote.updateCustomer(item.localId, payload);
+        // Resolve UUID → server ObjectId if created offline
+        final serverId = _resolveServerId(
+            item.localId, SyncEntityType.customer);
+        await remote.updateCustomer(serverId, payload);
         final localCustomer = local.getCustomerById(item.localId);
         if (localCustomer != null) {
           localCustomer.synced = true;
@@ -277,7 +286,9 @@ class SyncService {
         break;
 
       case SyncOperation.delete:
-        await remote.deleteCustomer(item.localId);
+        final serverId = _resolveServerId(
+            item.localId, SyncEntityType.customer);
+        await remote.deleteCustomer(serverId);
         break;
     }
   }
@@ -294,17 +305,18 @@ class SyncService {
     switch (item.operation) {
       case SyncOperation.create:
         // Resolve customerId: if the customer was also created offline,
-        // we need the server-assigned ID.
+        // we need the server-assigned ID (MongoDB ObjectId).
         String customerId = payload['customerId'] as String;
-
-        // Check if there's a synced queue item for this customer
-        // that has a serverId mapping
-        final customerQueueItem = _queue.findByLocalId(
+        final resolvedCustomerId = _queue.findServerIdByLocalId(
             customerId, SyncEntityType.customer);
-        if (customerQueueItem?.serverId != null) {
-          customerId = customerQueueItem!.serverId!;
+        if (resolvedCustomerId != null) {
+          customerId = resolvedCustomerId;
         }
 
+        // The items in the payload use {name, price, quantity, unit}
+        // which is what createLedgerEntry expects as its `items` param.
+        // The ApiService maps these to `linkedProducts` with the backend's
+        // expected shape {productId, quantity, pricePerUnit}.
         final items = (payload['items'] as List<dynamic>?)
                 ?.cast<Map<String, dynamic>>() ??
             [];
@@ -336,7 +348,10 @@ class SyncService {
         break;
 
       case SyncOperation.delete:
-        await remote.deleteLedgerEntry(item.localId,
+        // Resolve UUID → server ObjectId
+        final serverId = _resolveServerId(
+            item.localId, SyncEntityType.transaction);
+        await remote.deleteLedgerEntry(serverId,
             reason: payload['reason'] as String? ?? 'Deleted offline');
         break;
     }
@@ -348,8 +363,6 @@ class SyncService {
     if (remote == null || local == null) {
       throw StateError('Product datasources not configured');
     }
-
-    final payload = item.payload;
 
     switch (item.operation) {
       case SyncOperation.create:
@@ -364,7 +377,11 @@ class SyncService {
         break;
 
       case SyncOperation.update:
-        await remote.updateProduct(item.localId, payload);
+        // Resolve UUID → server ObjectId if created offline
+        final serverId = _resolveServerId(
+            item.localId, SyncEntityType.product);
+        final payload = item.payload;
+        await remote.updateProduct(serverId, payload);
         final localProduct = local.getProductById(item.localId);
         if (localProduct != null) {
           localProduct.synced = true;
@@ -373,7 +390,9 @@ class SyncService {
         break;
 
       case SyncOperation.delete:
-        await remote.deleteProduct(item.localId);
+        final serverId = _resolveServerId(
+            item.localId, SyncEntityType.product);
+        await remote.deleteProduct(serverId);
         break;
     }
   }
@@ -385,12 +404,29 @@ class SyncService {
       throw StateError('DailyNote datasources not configured');
     }
 
-    final payload = item.payload;
-
     switch (item.operation) {
       case SyncOperation.create:
         final localNote = local.getDailyNoteById(item.localId);
         if (localNote == null) break;
+
+        // If the note references an offline-created customer, resolve the ID
+        // Note: localNote.toJson() will include the local UUID for customerId.
+        // The remote.createNote sends the model's toJson(), so we must
+        // update the model's customerId before sending.
+        if (localNote.customerId != null) {
+          final resolvedCustId = _queue.findServerIdByLocalId(
+              localNote.customerId!, SyncEntityType.customer);
+          if (resolvedCustId != null) {
+            // Update the local model's customerId to the server ID
+            final updatedNote = localNote.copyWith(customerId: resolvedCustId);
+            await local.saveDailyNote(updatedNote);
+            final remoteNote = await remote.createNote(updatedNote);
+            await local.saveDailyNote(remoteNote);
+            await _queue.updateStatus(item.id,
+                status: SyncItemStatus.synced, serverId: remoteNote.id);
+            break;
+          }
+        }
 
         final remoteNote = await remote.createNote(localNote);
         await local.saveDailyNote(remoteNote);
@@ -399,7 +435,10 @@ class SyncService {
         break;
 
       case SyncOperation.update:
-        await remote.updateNote(item.localId, payload);
+        final serverId = _resolveServerId(
+            item.localId, SyncEntityType.dailyNote);
+        final payload = item.payload;
+        await remote.updateNote(serverId, payload);
         final localNote = local.getDailyNoteById(item.localId);
         if (localNote != null) {
           localNote.synced = true;
@@ -408,7 +447,9 @@ class SyncService {
         break;
 
       case SyncOperation.delete:
-        await remote.deleteNote(item.localId);
+        final serverId = _resolveServerId(
+            item.localId, SyncEntityType.dailyNote);
+        await remote.deleteNote(serverId);
         break;
     }
   }

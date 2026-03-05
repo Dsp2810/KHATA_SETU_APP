@@ -272,7 +272,7 @@ class UdharRepository {
       try {
         final remoteTxn = await _remote!.createLedgerEntry(
           customerId: customerId,
-          type: 'payment',
+          type: 'debit',
           amount: amount,
           description: description ?? 'Payment received',
           paymentMode: paymentModeStr,
@@ -301,7 +301,7 @@ class UdharRepository {
       localId: localId,
       payload: {
         'customerId': customerId,
-        'type': 'payment',
+        'type': 'debit',
         'amount': amount,
         'description': description ?? 'Payment received',
         'paymentMode': paymentModeStr,
