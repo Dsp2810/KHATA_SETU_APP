@@ -4,6 +4,14 @@
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:networkSecurityConfig="@xml/network_security_config">
+        <!-- Google Sign-In Android client ID -->
+        <meta-data
+            android:name="com.google.android.gms.client_id"
+            android:value="410088655694-2toserh3lobfpmh8ir8uat9lr48m5eq2.apps.googleusercontent.com" />
+        <!-- Google Sign-In Web client ID (for reference/documentation) -->
+        <meta-data
+            android:name="com.google.android.gms.web_client_id"
+            android:value="410088655694-rvjc877881gnblajk0s6lm510unnt2vu.apps.googleusercontent.com" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
