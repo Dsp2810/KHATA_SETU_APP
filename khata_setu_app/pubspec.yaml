@@ -80,6 +80,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   dartz: ^0.10.1
+  injectable: ^2.7.1+4
 
 dev_dependencies:
   flutter_test:

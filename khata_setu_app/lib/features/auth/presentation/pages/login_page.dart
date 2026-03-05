@@ -12,7 +12,6 @@ import '../../../../shared/widgets/custom_text_field.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
-import '../bloc/biometric_cubit.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -68,10 +67,6 @@ class _LoginPageState extends State<LoginPage>
         ),
       );
     }
-  }
-
-  void _onDemoLogin() {
-    context.read<AuthBloc>().add(const DemoLoginRequested());
   }
 
   @override
@@ -137,16 +132,9 @@ class _LoginPageState extends State<LoginPage>
                           ),
                           const SizedBox(height: AppSpacing.lg),
 
-                          // Social login section
-                          AnimatedListItem(
-                            index: 3,
-                            child: _buildSocialLogin(isDark),
-                          ),
-                          const SizedBox(height: AppSpacing.lg),
-
                           // Register link
                           AnimatedListItem(
-                            index: 4,
+                            index: 3,
                             child: _buildRegisterLink(),
                           ),
                         ],
@@ -395,178 +383,6 @@ class _LoginPageState extends State<LoginPage>
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildSocialLogin(bool isDark) {
-    return Column(
-      children: [
-        // // Divider with text
-        // Row(
-        //   children: [
-        //     Expanded(child: Divider(color: AppColors.grey300)),
-        //     Padding(
-        //       padding: const EdgeInsets.symmetric(horizontal: 16),
-        //       child: Text(
-        //         context.l10n.orContinueWith,
-        //         style: AppTextStyles.caption.copyWith(color: AppColors.grey500),
-        //       ),
-        //     ),
-        //     Expanded(child: Divider(color: AppColors.grey300)),
-        //   ],
-        // ),
-        // const SizedBox(height: 16),
-
-        // Social buttons
-        // Row(
-        //   children: [
-        //     Expanded(
-        //       child: _buildSocialButton(
-        //         icon: Icons.phone_android,
-        //         label: context.l10n.otpLogin,
-        //         color: AppColors.success,
-        //         isDark: isDark,
-        //         onTap: () {
-        //           ScaffoldMessenger.of(context).showSnackBar(
-        //             SnackBar(content: Text(context.l10n.comingSoon)),
-        //           );
-        //         },
-        //       ),
-        //     ),
-        //     const SizedBox(width: 12),
-        //     Expanded(
-        //       child: _buildSocialButton(
-        //         icon: Icons.fingerprint,
-        //         label: context.l10n.biometricLoginLabel,
-        //         color: AppColors.info,
-        //         isDark: isDark,
-        //         onTap: () async {
-        //           final biometricCubit = context.read<BiometricCubit>();
-        //           final canBiometric = await biometricCubit.shouldRequireBiometric();
-
-        //           if (!mounted) return;
-
-        //           if (!canBiometric) {
-        //             ScaffoldMessenger.of(context).showSnackBar(
-        //               SnackBar(content: Text(context.l10n.biometricUnavailable)),
-        //             );
-        //             return;
-        //           }
-
-        //           final authenticated = await biometricCubit.authenticate(
-        //             localizedReason: context.l10n.biometricAuthReason,
-        //           );
-
-        //           if (!mounted) return;
-
-        //           if (authenticated) {
-        //             context.go(RouteConstants.dashboard);
-        //           } else {
-        //             ScaffoldMessenger.of(context).showSnackBar(
-        //               SnackBar(content: Text(context.l10n.biometricFailed)),
-        //             );
-        //           }
-        //         },
-        //       ),
-        //     ),
-        //   ],
-        // ),
-        const SizedBox(height: 16),
-
-        // Demo mode info — tap to enter demo mode
-        // GestureDetector(
-        //   onTap: _onDemoLogin,
-        //   child: Container(
-        //     padding: const EdgeInsets.all(AppSpacing.md),
-        //     decoration: BoxDecoration(
-        //       color: AppColors.info.withOpacity(0.08),
-        //       borderRadius: BorderRadius.circular(AppRadius.md),
-        //       border: Border.all(
-        //         color: AppColors.info.withOpacity(0.2),
-        //       ),
-        //     ),
-        //     child: Row(
-        //       children: [
-        //         Container(
-        //           padding: const EdgeInsets.all(8),
-        //           decoration: BoxDecoration(
-        //             color: AppColors.info.withOpacity(0.15),
-        //             shape: BoxShape.circle,
-        //           ),
-        //           child: const Icon(
-        //             Icons.lightbulb_outline,
-        //             color: AppColors.info,
-        //             size: 18,
-        //           ),
-        //         ),
-        //         const SizedBox(width: 12),
-        //         Expanded(
-        //           child: Column(
-        //             crossAxisAlignment: CrossAxisAlignment.start,
-        //             children: [
-        //               Text(
-        //                 context.l10n.demoModeActive,
-        //                 style: AppTextStyles.labelMedium.copyWith(
-        //                   color: AppColors.info,
-        //                   fontWeight: FontWeight.w600,
-        //                 ),
-        //               ),
-        //               const SizedBox(height: 2),
-        //               Text(
-        //                 context.l10n.demoModeHint,
-        //                 style: AppTextStyles.caption.copyWith(
-        //                   color: AppColors.grey600,
-        //                 ),
-        //               ),
-        //             ],
-        //           ),
-        //         ),
-        //       ],
-        //     ),
-        //   ),
-        // ),
-      ],
-    );
-  }
-
-  Widget _buildSocialButton({
-    required IconData icon,
-    required String label,
-    required Color color,
-    required bool isDark,
-    required VoidCallback onTap,
-  }) {
-    return AnimatedScaleOnTap(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: context.cardColor,
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(color: AppColors.grey200),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.black.withOpacity(0.03),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: color, size: 20),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: AppTextStyles.labelLarge.copyWith(
-                color: color,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
