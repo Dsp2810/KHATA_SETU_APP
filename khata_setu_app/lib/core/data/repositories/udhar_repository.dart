@@ -7,20 +7,28 @@ import 'dart:io';
 
 import '../datasources/udhar_local_datasource.dart';
 import '../datasources/udhar_remote_datasource.dart';
+import '../datasources/sync_queue_local_datasource.dart';
 import '../models/customer_model.dart';
 import '../models/transaction_model.dart';
 import '../models/daily_summary_model.dart';
+import '../models/sync_queue_item_model.dart';
 
 /// Repository — Single entry point for all Udhar business logic.
 /// Offline-first: reads from local Hive, syncs with remote API.
 /// When [_remote] is available, operations go to server first,
 /// then update local cache. Fallback to local-only when offline.
+/// Failed remote calls are enqueued via [_syncQueue] for later retry.
 class UdharRepository {
   final UdharLocalDataSource _local;
   final UdharRemoteDataSource? _remote;
+  final SyncQueueLocalDataSource? _syncQueue;
   final _uuid = const Uuid();
+  String _shopId = '';
 
-  UdharRepository(this._local, [this._remote]);
+  UdharRepository(this._local, [this._remote, this._syncQueue]);
+
+  /// Set the active shopId (for multi-shop queue scoping).
+  void setShopId(String shopId) => _shopId = shopId;
 
   bool get _hasRemote => _remote != null;
 
@@ -88,7 +96,7 @@ class UdharRepository {
       }
     }
 
-    // Fallback to local
+    // Fallback to local + enqueue for sync
     final customer = CustomerModel(
       id: _uuid.v4(),
       name: name,
@@ -101,28 +109,59 @@ class UdharRepository {
       createdAt: DateTime.now(),
     );
     await _local.saveCustomer(customer);
+
+    // Enqueue for later sync
+    _enqueue(
+      entityType: SyncEntityType.customer,
+      operation: SyncOperation.create,
+      localId: customer.id,
+      payload: {
+        'name': name,
+        'phone': phone,
+        if (email != null) 'email': email,
+        if (address != null) 'address': address,
+        'creditLimit': creditLimit,
+        if (avatar != null) 'avatar': avatar,
+        if (notes != null) 'notes': notes,
+      },
+    );
+
     return customer;
   }
 
   Future<void> updateCustomer(CustomerModel customer) async {
+    final updatePayload = {
+      'name': customer.name,
+      'phone': customer.phone,
+      if (customer.email != null) 'email': customer.email,
+      if (customer.address != null) 'address': customer.address,
+      'creditLimit': customer.creditLimit,
+      if (customer.notes != null) 'notes': customer.notes,
+    };
+
     // Try remote
     if (_hasRemote) {
       try {
-        await _remote!.updateCustomer(customer.id, {
-          'name': customer.name,
-          'phone': customer.phone,
-          if (customer.email != null) 'email': customer.email,
-          if (customer.address != null) 'address': customer.address,
-          'creditLimit': customer.creditLimit,
-          if (customer.notes != null) 'notes': customer.notes,
-        });
+        await _remote!.updateCustomer(customer.id, updatePayload);
         customer.synced = true;
       } catch (e) {
         debugPrint('Remote update failed: $e');
         customer.synced = false;
+        _enqueue(
+          entityType: SyncEntityType.customer,
+          operation: SyncOperation.update,
+          localId: customer.id,
+          payload: updatePayload,
+        );
       }
     } else {
       customer.synced = false;
+      _enqueue(
+        entityType: SyncEntityType.customer,
+        operation: SyncOperation.update,
+        localId: customer.id,
+        payload: updatePayload,
+      );
     }
     await _local.saveCustomer(customer);
   }
@@ -133,6 +172,12 @@ class UdharRepository {
         await _remote!.deleteCustomer(id);
       } catch (e) {
         debugPrint('Remote delete failed: $e');
+        _enqueue(
+          entityType: SyncEntityType.customer,
+          operation: SyncOperation.delete,
+          localId: id,
+          payload: {},
+        );
       }
     }
     await _local.deleteCustomer(id);
@@ -180,15 +225,38 @@ class UdharRepository {
       }
     }
 
-    // Fallback: save locally only
-    return _local.addTransaction(
-      id: _uuid.v4(),
+    // Fallback: save locally only + enqueue
+    final localId = _uuid.v4();
+    final txn = await _local.addTransaction(
+      id: localId,
       customerId: customerId,
       type: 0,
       amount: amount,
       items: items,
       description: description,
     );
+
+    _enqueue(
+      entityType: SyncEntityType.transaction,
+      operation: SyncOperation.create,
+      localId: localId,
+      payload: {
+        'customerId': customerId,
+        'type': 'credit',
+        'amount': amount,
+        if (description != null) 'description': description,
+        'items': items
+            .map((i) => {
+                  'name': i.name,
+                  'price': i.price,
+                  'quantity': i.quantity,
+                  if (i.unit != null) 'unit': i.unit,
+                })
+            .toList(),
+      },
+    );
+
+    return txn;
   }
 
   Future<TransactionModel> addPayment({
@@ -216,15 +284,31 @@ class UdharRepository {
       }
     }
 
-    // Fallback: save locally only
-    return _local.addTransaction(
-      id: _uuid.v4(),
+    // Fallback: save locally only + enqueue
+    final localId = _uuid.v4();
+    final txn = await _local.addTransaction(
+      id: localId,
       customerId: customerId,
       type: 1,
       amount: amount,
       paymentMode: paymentMode,
       description: description ?? 'Payment received',
     );
+
+    _enqueue(
+      entityType: SyncEntityType.transaction,
+      operation: SyncOperation.create,
+      localId: localId,
+      payload: {
+        'customerId': customerId,
+        'type': 'payment',
+        'amount': amount,
+        'description': description ?? 'Payment received',
+        'paymentMode': paymentModeStr,
+      },
+    );
+
+    return txn;
   }
 
   String _paymentModeToString(int mode) {
@@ -253,6 +337,12 @@ class UdharRepository {
         await _remote!.deleteLedgerEntry(lastTxn.id, reason: 'Undo');
       } catch (e) {
         debugPrint('Remote undo failed: $e');
+        _enqueue(
+          entityType: SyncEntityType.transaction,
+          operation: SyncOperation.delete,
+          localId: lastTxn.id,
+          payload: {'reason': 'Undo'},
+        );
       }
     }
 
@@ -307,5 +397,23 @@ class UdharRepository {
         await txn.save();
       }
     }
+  }
+
+  // ─── Queue Helper ──────────────────────────────────────────
+
+  void _enqueue({
+    required SyncEntityType entityType,
+    required SyncOperation operation,
+    required String localId,
+    required Map<String, dynamic> payload,
+  }) {
+    if (_syncQueue == null) return;
+    _syncQueue.add(SyncQueueItemModel(
+      entityType: entityType,
+      operation: operation,
+      shopId: _shopId,
+      localId: localId,
+      payloadJson: jsonEncode(payload),
+    ));
   }
 }

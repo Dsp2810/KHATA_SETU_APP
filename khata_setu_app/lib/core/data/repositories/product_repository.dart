@@ -1,18 +1,27 @@
+import 'dart:convert';
+
 import 'package:uuid/uuid.dart';
 
 import '../../utils/app_logger.dart';
 import '../datasources/product_local_datasource.dart';
 import '../datasources/product_remote_datasource.dart';
+import '../datasources/sync_queue_local_datasource.dart';
 import '../models/product_model.dart';
+import '../models/sync_queue_item_model.dart';
 
 /// Repository — Single entry point for all Product/Inventory operations.
 /// Offline-first: reads from local Hive, syncs with remote API.
+/// Failed remote calls enqueue via [_syncQueue] for later retry.
 class ProductRepository {
   final ProductLocalDataSource _local;
   final ProductRemoteDataSource? _remote;
+  final SyncQueueLocalDataSource? _syncQueue;
   final _uuid = const Uuid();
+  String _shopId = '';
 
-  ProductRepository(this._local, [this._remote]);
+  ProductRepository(this._local, [this._remote, this._syncQueue]);
+
+  void setShopId(String shopId) => _shopId = shopId;
 
   bool get _hasRemote => _remote != null;
 
@@ -134,8 +143,13 @@ class ProductRepository {
       }
     }
 
-    // Fallback: save locally as unsynced
+    // Fallback: save locally as unsynced + enqueue
     await _local.saveProduct(localProduct);
+    _enqueue(
+      operation: SyncOperation.create,
+      localId: localProduct.id,
+      payload: _productToPayload(localProduct),
+    );
     return localProduct;
   }
 
@@ -173,6 +187,11 @@ class ProductRepository {
 
     product.synced = false;
     await _local.saveProduct(product);
+    _enqueue(
+      operation: SyncOperation.update,
+      localId: product.id,
+      payload: _productToPayload(product),
+    );
   }
 
   // ─── Delete ──────────────────────────────────────────────────
@@ -183,6 +202,11 @@ class ProductRepository {
         await _remote!.deleteProduct(productId);
       } catch (e) {
         AppLogger.warning('Remote delete product failed: $e');
+        _enqueue(
+          operation: SyncOperation.delete,
+          localId: productId,
+          payload: {},
+        );
       }
     }
     await _local.deleteProduct(productId);
@@ -236,5 +260,47 @@ class ProductRepository {
     }
 
     return syncedCount;
+  }
+
+  // ─── Queue Helper ──────────────────────────────────────────
+
+  Map<String, dynamic> _productToPayload(ProductModel p) => {
+        'name': p.name,
+        if (p.localName != null) 'localName': p.localName,
+        if (p.description != null) 'description': p.description,
+        'category': p.category,
+        'unit': p.unit,
+        'purchasePrice': p.purchasePrice,
+        'sellingPrice': p.sellingPrice,
+        if (p.mrp != null) 'mrp': p.mrp,
+        'taxRate': p.taxRate,
+        'currentStock': p.currentStock,
+        'minStockLevel': p.minStockLevel,
+        'maxStockLevel': p.maxStockLevel,
+        'reorderPoint': p.reorderPoint,
+        if (p.image != null) 'image': p.image,
+        if (p.tags.isNotEmpty) 'tags': p.tags,
+        if (p.supplierName != null || p.supplierPhone != null)
+          'supplier': {
+            if (p.supplierName != null) 'name': p.supplierName,
+            if (p.supplierPhone != null) 'phone': p.supplierPhone,
+          },
+        if (p.barcode != null) 'barcode': p.barcode,
+        if (p.sku != null) 'sku': p.sku,
+      };
+
+  void _enqueue({
+    required SyncOperation operation,
+    required String localId,
+    required Map<String, dynamic> payload,
+  }) {
+    if (_syncQueue == null) return;
+    _syncQueue.add(SyncQueueItemModel(
+      entityType: SyncEntityType.product,
+      operation: operation,
+      shopId: _shopId,
+      localId: localId,
+      payloadJson: jsonEncode(payload),
+    ));
   }
 }

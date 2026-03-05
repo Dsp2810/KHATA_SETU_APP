@@ -7,6 +7,7 @@ import '../../../../core/constants/constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/app_formatter.dart';
+import '../../../sync/presentation/widgets/sync_banner.dart';
 
 class HomePage extends StatefulWidget {
   final Widget child;
@@ -132,7 +133,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     return Scaffold(
-      body: widget.child,
+      body: Column(
+        children: [
+          const SyncBanner(),
+          Expanded(child: widget.child),
+        ],
+      ),
       extendBody: true,
       bottomNavigationBar: Container(
         margin: EdgeInsets.fromLTRB(16, 0, 16, bottomPadding > 0 ? bottomPadding : 12),
