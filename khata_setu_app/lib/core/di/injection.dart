@@ -24,7 +24,6 @@ import '../data/repositories/shop_upi_repository.dart';
 import '../../features/upi/presentation/bloc/shop_upi_cubit.dart';
 import '../../features/settings/presentation/bloc/language_cubit.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
-import '../services/sync_service.dart';
 import '../services/sync_service_v2.dart' as v2;
 import '../services/connectivity_service.dart';
 import '../data/datasources/sync_queue_local_datasource.dart';
@@ -55,7 +54,9 @@ Future<void> configureDependencies() async {
   } else {
     flutterSecureStorage = const FlutterSecureStorage(
       aOptions: AndroidOptions(encryptedSharedPreferences: true),
-      iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock_this_device),
+      iOptions: IOSOptions(
+        accessibility: KeychainAccessibility.first_unlock_this_device,
+      ),
     );
   }
   getIt.registerSingleton<FlutterSecureStorage>(flutterSecureStorage);
@@ -105,7 +106,9 @@ Future<void> configureDependencies() async {
   );
 
   // Network
-  getIt.registerLazySingleton<Dio>(() => DioClient.createDio(getIt<SecureStorageService>()));
+  getIt.registerLazySingleton<Dio>(
+    () => DioClient.createDio(getIt<SecureStorageService>()),
+  );
 
   // Register feature-specific dependencies
   await _registerFeatureDependencies();
@@ -139,9 +142,7 @@ Future<void> _registerFeatureDependencies() async {
 
 Future<void> _registerAuthDependencies() async {
   // API Service (depends on Dio)
-  getIt.registerLazySingleton<ApiService>(
-    () => ApiService(getIt<Dio>()),
-  );
+  getIt.registerLazySingleton<ApiService>(() => ApiService(getIt<Dio>()));
 
   // Auth BLoC (singleton — shared across splash, login, register)
   getIt.registerLazySingleton<AuthBloc>(
@@ -213,12 +214,6 @@ Future<void> registerRemoteDatasource(String shopId) async {
   getIt<CustomerBloc>().updateRepository(udharRepo);
   getIt<TransactionBloc>().updateRepository(udharRepo);
 
-  // ── Old SyncService (udhar-only periodic) — dispose if exists ──
-  if (getIt.isRegistered<SyncService>()) {
-    getIt<SyncService>().dispose();
-    getIt.unregister<SyncService>();
-  }
-
   // ── New SyncService v2: wire datasources + start ──
   final syncServiceV2 = getIt<v2.SyncService>();
   syncServiceV2.setUdharDatasources(
@@ -288,12 +283,10 @@ Future<void> registerRemoteDatasource(String shopId) async {
 
 Future<void> _registerLedgerDependencies() async {
   // TransactionBloc — Singleton, shares the same UdharRepository
-  getIt.registerLazySingleton<TransactionBloc>(
-    () {
-      final bloc = TransactionBloc(getIt<UdharRepository>());
-      return bloc;
-    },
-  );
+  getIt.registerLazySingleton<TransactionBloc>(() {
+    final bloc = TransactionBloc(getIt<UdharRepository>());
+    return bloc;
+  });
 }
 
 Future<void> _registerInventoryDependencies() async {
@@ -343,9 +336,7 @@ Future<void> _registerDailyNoteDependencies() async {
 
   // BLoC — Singleton so all pages share the same instance
   getIt.registerLazySingleton<DailyNoteBloc>(
-    () => DailyNoteBloc(
-      noteRepository: getIt<DailyNoteRepository>(),
-    ),
+    () => DailyNoteBloc(noteRepository: getIt<DailyNoteRepository>()),
   );
 }
 
@@ -359,9 +350,7 @@ Future<void> _registerSettingsDependencies() async {
   getIt.registerLazySingleton<BackupService>(
     () => BackupService(getIt<FlutterSecureStorage>()),
   );
-  getIt.registerLazySingleton<RestoreService>(
-    () => RestoreService(),
-  );
+  getIt.registerLazySingleton<RestoreService>(() => RestoreService());
 
   // BackupCubit — factory so each navigation creates fresh state
   getIt.registerFactory<BackupCubit>(
@@ -382,8 +371,6 @@ Future<void> _registerNotificationDependencies() async {
 
   // BLoC — Singleton so badge count is shared across app
   getIt.registerLazySingleton<NotificationBloc>(
-    () => NotificationBloc(
-      dataSource: getIt<NotificationLocalDataSource>(),
-    ),
+    () => NotificationBloc(dataSource: getIt<NotificationLocalDataSource>()),
   );
 }

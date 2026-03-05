@@ -17,21 +17,22 @@ class SyncState {
     this.failedCount = 0,
   });
 
-  bool get showBanner => !isOnline || isSyncing || pendingCount > 0 || failedCount > 0;
-  bool get isIdle => isOnline && !isSyncing && pendingCount == 0 && failedCount == 0;
+  bool get showBanner =>
+      !isOnline || isSyncing || pendingCount > 0 || failedCount > 0;
+  bool get isIdle =>
+      isOnline && !isSyncing && pendingCount == 0 && failedCount == 0;
 
   SyncState copyWith({
     bool? isOnline,
     bool? isSyncing,
     int? pendingCount,
     int? failedCount,
-  }) =>
-      SyncState(
-        isOnline: isOnline ?? this.isOnline,
-        isSyncing: isSyncing ?? this.isSyncing,
-        pendingCount: pendingCount ?? this.pendingCount,
-        failedCount: failedCount ?? this.failedCount,
-      );
+  }) => SyncState(
+    isOnline: isOnline ?? this.isOnline,
+    isSyncing: isSyncing ?? this.isSyncing,
+    pendingCount: pendingCount ?? this.pendingCount,
+    failedCount: failedCount ?? this.failedCount,
+  );
 
   @override
   bool operator ==(Object other) =>
@@ -43,7 +44,8 @@ class SyncState {
           failedCount == other.failedCount;
 
   @override
-  int get hashCode => Object.hash(isOnline, isSyncing, pendingCount, failedCount);
+  int get hashCode =>
+      Object.hash(isOnline, isSyncing, pendingCount, failedCount);
 }
 
 /// Cubit that listens to [SyncService.progressStream] and exposes
@@ -57,30 +59,36 @@ class SyncCubit extends Cubit<SyncState> {
 
     // Emit initial state from service
     final initial = _syncService.lastProgress;
-    emit(SyncState(
-      isOnline: initial.isOnline,
-      isSyncing: initial.isSyncing,
-      pendingCount: initial.pendingCount,
-      failedCount: initial.failedCount,
-    ));
+    emit(
+      SyncState(
+        isOnline: initial.isOnline,
+        isSyncing: initial.isSyncing,
+        pendingCount: initial.pendingCount,
+        failedCount: initial.failedCount,
+      ),
+    );
   }
 
   void _onProgress(SyncProgress progress) {
-    emit(SyncState(
-      isOnline: progress.isOnline,
-      isSyncing: progress.isSyncing,
-      pendingCount: progress.pendingCount,
-      failedCount: progress.failedCount,
-    ));
+    emit(
+      SyncState(
+        isOnline: progress.isOnline,
+        isSyncing: progress.isSyncing,
+        pendingCount: progress.pendingCount,
+        failedCount: progress.failedCount,
+      ),
+    );
   }
 
   /// Manual sync trigger.
   Future<void> syncNow() async {
+    emit(state.copyWith(isSyncing: true));
     await _syncService.syncNow();
   }
 
   /// Retry all permanently failed items.
   Future<void> retryFailed() async {
+    emit(state.copyWith(isSyncing: true, failedCount: 0));
     await _syncService.retryFailed();
   }
 

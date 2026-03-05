@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:uuid/uuid.dart';
 
 import '../../utils/app_logger.dart';
+import '../../utils/inventory_rules.dart';
 import '../datasources/product_local_datasource.dart';
 import '../datasources/product_remote_datasource.dart';
 import '../datasources/sync_queue_local_datasource.dart';
@@ -74,8 +75,7 @@ class ProductRepository {
 
   List<ProductModel> getLowStockProducts() => _local.getLowStockProducts();
 
-  List<ProductModel> getOutOfStockProducts() =>
-      _local.getOutOfStockProducts();
+  List<ProductModel> getOutOfStockProducts() => _local.getOutOfStockProducts();
 
   List<String> getCategories() => _local.getCategories();
 
@@ -172,8 +172,7 @@ class ProductRepository {
           if (product.supplierName != null || product.supplierPhone != null)
             'supplier': {
               if (product.supplierName != null) 'name': product.supplierName,
-              if (product.supplierPhone != null)
-                'phone': product.supplierPhone,
+              if (product.supplierPhone != null) 'phone': product.supplierPhone,
             },
           if (product.tags.isNotEmpty) 'tags': product.tags,
         };
@@ -221,8 +220,6 @@ class ProductRepository {
     double? unitPrice,
     String? notes,
   }) async {
-    final quantityChange = type == 'add' ? quantity : -quantity;
-
     if (_hasRemote) {
       try {
         await _remote!.adjustStock(
@@ -237,7 +234,20 @@ class ProductRepository {
       }
     }
 
-    await _local.adjustStock(productId, quantityChange);
+    // Use InventoryRules as single source of truth for stock calculation
+    final product = _local.getProductById(productId);
+    if (product != null) {
+      final newStock = InventoryRules.calculateStockAfterAdjustment(
+        currentStock: product.currentStock,
+        type: type,
+        quantity: quantity,
+      );
+      await _local.setStock(
+        productId,
+        newStock,
+        isRestock: type == 'add' || type == 'return',
+      );
+    }
   }
 
   // ─── Sync ────────────────────────────────────────────────────
@@ -265,29 +275,29 @@ class ProductRepository {
   // ─── Queue Helper ──────────────────────────────────────────
 
   Map<String, dynamic> _productToPayload(ProductModel p) => {
-        'name': p.name,
-        if (p.localName != null) 'localName': p.localName,
-        if (p.description != null) 'description': p.description,
-        'category': p.category,
-        'unit': p.unit,
-        'purchasePrice': p.purchasePrice,
-        'sellingPrice': p.sellingPrice,
-        if (p.mrp != null) 'mrp': p.mrp,
-        'taxRate': p.taxRate,
-        'currentStock': p.currentStock,
-        'minStockLevel': p.minStockLevel,
-        'maxStockLevel': p.maxStockLevel,
-        'reorderPoint': p.reorderPoint,
-        if (p.image != null) 'image': p.image,
-        if (p.tags.isNotEmpty) 'tags': p.tags,
-        if (p.supplierName != null || p.supplierPhone != null)
-          'supplier': {
-            if (p.supplierName != null) 'name': p.supplierName,
-            if (p.supplierPhone != null) 'phone': p.supplierPhone,
-          },
-        if (p.barcode != null) 'barcode': p.barcode,
-        if (p.sku != null) 'sku': p.sku,
-      };
+    'name': p.name,
+    if (p.localName != null) 'localName': p.localName,
+    if (p.description != null) 'description': p.description,
+    'category': p.category,
+    'unit': p.unit,
+    'purchasePrice': p.purchasePrice,
+    'sellingPrice': p.sellingPrice,
+    if (p.mrp != null) 'mrp': p.mrp,
+    'taxRate': p.taxRate,
+    'currentStock': p.currentStock,
+    'minStockLevel': p.minStockLevel,
+    'maxStockLevel': p.maxStockLevel,
+    'reorderPoint': p.reorderPoint,
+    if (p.image != null) 'image': p.image,
+    if (p.tags.isNotEmpty) 'tags': p.tags,
+    if (p.supplierName != null || p.supplierPhone != null)
+      'supplier': {
+        if (p.supplierName != null) 'name': p.supplierName,
+        if (p.supplierPhone != null) 'phone': p.supplierPhone,
+      },
+    if (p.barcode != null) 'barcode': p.barcode,
+    if (p.sku != null) 'sku': p.sku,
+  };
 
   void _enqueue({
     required SyncOperation operation,
@@ -295,12 +305,14 @@ class ProductRepository {
     required Map<String, dynamic> payload,
   }) {
     if (_syncQueue == null) return;
-    _syncQueue.add(SyncQueueItemModel(
-      entityType: SyncEntityType.product,
-      operation: operation,
-      shopId: _shopId,
-      localId: localId,
-      payloadJson: jsonEncode(payload),
-    ));
+    _syncQueue.add(
+      SyncQueueItemModel(
+        entityType: SyncEntityType.product,
+        operation: operation,
+        shopId: _shopId,
+        localId: localId,
+        payloadJson: jsonEncode(payload),
+      ),
+    );
   }
 }

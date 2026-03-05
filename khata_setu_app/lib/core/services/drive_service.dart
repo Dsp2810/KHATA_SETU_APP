@@ -24,14 +24,15 @@ class DriveBackupMeta {
 
 /// Handles Google Sign-In authentication and Google Drive file operations.
 ///
-/// All files are stored in the hidden `appDataFolder` so users cannot
-/// accidentally delete backups from the Drive UI.
+/// Backups are stored in a visible "KhataSetu Backups" folder in the user's
+/// Google Drive so they can see and manage their backup files directly.
 class DriveService {
-  static const _scopes = [drive.DriveApi.driveAppdataScope];
+  static const _scopes = [drive.DriveApi.driveFileScope];
   static const _backupPrefix = 'khatasetu_backup_';
   static const _backupSuffix = '.enc';
   static const _maxBackups = 5;
   static const _connectedAccountKey = 'gdrive_connected_email';
+  static const _folderName = 'KhataSetu Backups';
 
   /// Web OAuth 2.0 Client ID (also used as serverClientId on Android).
   static const _webClientId =
@@ -43,6 +44,9 @@ class DriveService {
   GoogleSignIn? _googleSignIn;
   GoogleSignInAccount? _currentAccount;
   drive.DriveApi? _driveApi;
+
+  /// Cached folder ID to avoid repeated lookups.
+  String? _backupFolderId;
 
   DriveService(this._secureStorage);
 
@@ -107,6 +111,7 @@ class DriveService {
     } catch (_) {}
     _currentAccount = null;
     _driveApi = null;
+    _backupFolderId = null;
     await _secureStorage.delete(key: _connectedAccountKey);
     _log.i('Google Drive disconnected');
   }
@@ -129,33 +134,63 @@ class DriveService {
     return _driveApi!;
   }
 
+  // ─── Folder Management ─────────────────────────────────────
+
+  /// Find or create the "KhataSetu Backups" folder in the user's Drive root.
+  /// Returns the folder ID, cached after first lookup.
+  Future<String> _getOrCreateFolder(drive.DriveApi api) async {
+    if (_backupFolderId != null) return _backupFolderId!;
+
+    // Search for existing folder
+    final query =
+        "name = '$_folderName' "
+        "and mimeType = 'application/vnd.google-apps.folder' "
+        "and trashed = false";
+    final result = await api.files.list(
+      q: query,
+      spaces: 'drive',
+      $fields: 'files(id, name)',
+    );
+
+    if (result.files != null && result.files!.isNotEmpty) {
+      _backupFolderId = result.files!.first.id!;
+      _log.i('Found existing backup folder: $_backupFolderId');
+      return _backupFolderId!;
+    }
+
+    // Create new folder
+    final folderMeta = drive.File()
+      ..name = _folderName
+      ..mimeType = 'application/vnd.google-apps.folder';
+
+    final created = await api.files.create(folderMeta);
+    _backupFolderId = created.id!;
+    _log.i('Created backup folder: $_backupFolderId');
+    return _backupFolderId!;
+  }
+
   // ─── Upload ────────────────────────────────────────────────
 
-  /// Upload encrypted backup bytes to appDataFolder.
+  /// Upload encrypted backup bytes to the "KhataSetu Backups" folder.
   /// Returns the created file's ID.
   Future<String> uploadBackup(Uint8List data) async {
     final api = await _ensureDriveApi();
+    final folderId = await _getOrCreateFolder(api);
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final fileName = '$_backupPrefix$timestamp$_backupSuffix';
 
     final fileMetadata = drive.File()
       ..name = fileName
-      ..parents = ['appDataFolder'];
+      ..parents = [folderId];
 
-    final media = drive.Media(
-      Stream.value(data),
-      data.length,
-    );
+    final media = drive.Media(Stream.value(data), data.length);
 
-    final created = await api.files.create(
-      fileMetadata,
-      uploadMedia: media,
-    );
+    final created = await api.files.create(fileMetadata, uploadMedia: media);
 
     _log.i('Backup uploaded: ${created.id} ($fileName, ${data.length} bytes)');
 
     // Prune old backups to keep only the latest _maxBackups
-    await _pruneOldBackups(api);
+    await _pruneOldBackups(api, folderId);
 
     return created.id!;
   }
@@ -165,10 +200,10 @@ class DriveService {
   /// List available backups, newest first.
   Future<List<DriveBackupMeta>> listBackups() async {
     final api = await _ensureDriveApi();
+    final folderId = await _getOrCreateFolder(api);
 
     final result = await api.files.list(
-      spaces: 'appDataFolder',
-      q: "name contains '$_backupPrefix'",
+      q: "'$folderId' in parents and name contains '$_backupPrefix' and trashed = false",
       orderBy: 'createdTime desc',
       $fields: 'files(id, name, createdTime, size)',
     );
@@ -187,10 +222,12 @@ class DriveService {
   Future<Uint8List> downloadBackup(String fileId) async {
     final api = await _ensureDriveApi();
 
-    final media = await api.files.get(
-      fileId,
-      downloadOptions: drive.DownloadOptions.fullMedia,
-    ) as drive.Media;
+    final media =
+        await api.files.get(
+              fileId,
+              downloadOptions: drive.DownloadOptions.fullMedia,
+            )
+            as drive.Media;
 
     final chunks = <List<int>>[];
     await for (final chunk in media.stream) {
@@ -212,11 +249,10 @@ class DriveService {
   // ─── Cleanup ───────────────────────────────────────────────
 
   /// Delete backups beyond the latest [_maxBackups].
-  Future<void> _pruneOldBackups(drive.DriveApi api) async {
+  Future<void> _pruneOldBackups(drive.DriveApi api, String folderId) async {
     try {
       final result = await api.files.list(
-        spaces: 'appDataFolder',
-        q: "name contains '$_backupPrefix'",
+        q: "'$folderId' in parents and name contains '$_backupPrefix' and trashed = false",
         orderBy: 'createdTime desc',
         $fields: 'files(id, name, createdTime)',
       );

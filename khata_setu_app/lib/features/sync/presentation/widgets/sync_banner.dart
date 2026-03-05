@@ -35,8 +35,10 @@ class SyncBanner extends StatelessWidget {
             child: SafeArea(
               bottom: false,
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: Row(
                   children: [
                     if (state.isSyncing)
@@ -80,7 +82,7 @@ class SyncBanner extends StatelessWidget {
     if (!state.isOnline) {
       return (
         Icons.cloud_off_rounded,
-        'No internet — changes saved locally',
+        'Offline mode — changes will sync automatically',
         AppColors.warning,
         null,
       );

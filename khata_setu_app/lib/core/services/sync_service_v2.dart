@@ -46,25 +46,31 @@ class SyncService {
   SyncService({
     required SyncQueueLocalDataSource queue,
     required ConnectivityService connectivity,
-  })  : _queue = queue,
-        _connectivity = connectivity;
+  }) : _queue = queue,
+       _connectivity = connectivity;
 
   // ── Datasource injection (called after login) ──────────────
 
   void setUdharDatasources(
-      UdharLocalDataSource local, UdharRemoteDataSource remote) {
+    UdharLocalDataSource local,
+    UdharRemoteDataSource remote,
+  ) {
     _udharLocal = local;
     _udharRemote = remote;
   }
 
   void setProductDatasources(
-      ProductLocalDataSource local, ProductRemoteDataSource remote) {
+    ProductLocalDataSource local,
+    ProductRemoteDataSource remote,
+  ) {
     _productLocal = local;
     _productRemote = remote;
   }
 
   void setDailyNoteDatasources(
-      DailyNoteLocalDataSource local, DailyNoteRemoteDataSource remote) {
+    DailyNoteLocalDataSource local,
+    DailyNoteRemoteDataSource remote,
+  ) {
     _dailyNoteLocal = local;
     _dailyNoteRemote = remote;
   }
@@ -86,12 +92,9 @@ class SyncService {
 
     // Periodic sweep every 2 minutes (catches items that errored transiently)
     _periodicTimer?.cancel();
-    _periodicTimer = Timer.periodic(
-      const Duration(minutes: 2),
-      (_) {
-        if (_connectivity.isOnline) flushQueue();
-      },
-    );
+    _periodicTimer = Timer.periodic(const Duration(minutes: 2), (_) {
+      if (_connectivity.isOnline) flushQueue();
+    });
 
     // Initial emit
     _emitProgress(isOnline: _connectivity.isOnline);
@@ -122,7 +125,9 @@ class SyncService {
     // Dedup: if a pending/failed item already exists for same localId+entity, skip
     final existing = _queue.findByLocalId(item.localId, item.entityType);
     if (existing != null) {
-      AppLogger.info('[SyncService] Dedup: skipping enqueue for ${item.localId}');
+      AppLogger.info(
+        '[SyncService] Dedup: skipping enqueue for ${item.localId}',
+      );
       return;
     }
 
@@ -143,6 +148,8 @@ class SyncService {
     if (_isFlushing) return;
     _isFlushing = true;
 
+    AppLogger.info('[SyncService] ── Sync started ──');
+
     try {
       _emitProgress(isOnline: true, isSyncing: true);
 
@@ -153,6 +160,9 @@ class SyncService {
         for (final item in batch) {
           if (!_connectivity.isOnline) {
             // Lost connection mid-flush — stop
+            AppLogger.warning(
+              '[SyncService] Lost connectivity mid-sync, stopping',
+            );
             _emitProgress(isOnline: false);
             return;
           }
@@ -164,11 +174,14 @@ class SyncService {
       // Cleanup synced items
       await _queue.clearSynced();
 
+      AppLogger.info('[SyncService] ── Sync completed successfully ──');
       _emitProgress(isOnline: true, isSyncing: false);
     } catch (e) {
-      AppLogger.error('[SyncService] flushQueue error: $e');
+      AppLogger.error('[SyncService] ── Sync failed: $e ──');
     } finally {
       _isFlushing = false;
+      // Always emit final progress so UI never gets stuck in "syncing" state
+      _emitProgress(isOnline: _connectivity.isOnline, isSyncing: false);
     }
   }
 
@@ -188,8 +201,9 @@ class SyncService {
       // Success
       await _queue.updateStatus(item.id, status: SyncItemStatus.synced);
       AppLogger.info(
-          '[SyncService] Synced: ${item.entityType.name}.${item.operation.name} '
-          'localId=${item.localId}');
+        '[SyncService] Synced: ${item.entityType.name}.${item.operation.name} '
+        'localId=${item.localId}',
+      );
     } catch (e) {
       final newRetry = item.retryCount + 1;
       final errorMsg = e.toString();
@@ -197,8 +211,9 @@ class SyncService {
       if (newRetry >= 5) {
         await _queue.markFailed(item.id, errorMsg);
         AppLogger.error(
-            '[SyncService] Permanently failed after 5 retries: '
-            '${item.entityType.name}.${item.operation.name} localId=${item.localId}');
+          '[SyncService] Permanently failed after 5 retries: '
+          '${item.entityType.name}.${item.operation.name} localId=${item.localId}',
+        );
       } else {
         await _queue.updateStatus(
           item.id,
@@ -207,7 +222,8 @@ class SyncService {
           lastError: errorMsg,
         );
         AppLogger.warning(
-            '[SyncService] Retry $newRetry/5 for ${item.localId}: $errorMsg');
+          '[SyncService] Retry $newRetry/5 for ${item.localId}: $errorMsg',
+        );
       }
     }
 
@@ -267,8 +283,11 @@ class SyncService {
           await localCustomer.save();
         }
         // Store the server ID mapping
-        await _queue.updateStatus(item.id,
-            status: SyncItemStatus.synced, serverId: remoteCustomer.id);
+        await _queue.updateStatus(
+          item.id,
+          status: SyncItemStatus.synced,
+          serverId: remoteCustomer.id,
+        );
         // Also save the remote version locally for data freshness
         await local.saveCustomer(remoteCustomer);
         break;
@@ -276,7 +295,9 @@ class SyncService {
       case SyncOperation.update:
         // Resolve UUID → server ObjectId if created offline
         final serverId = _resolveServerId(
-            item.localId, SyncEntityType.customer);
+          item.localId,
+          SyncEntityType.customer,
+        );
         await remote.updateCustomer(serverId, payload);
         final localCustomer = local.getCustomerById(item.localId);
         if (localCustomer != null) {
@@ -287,7 +308,9 @@ class SyncService {
 
       case SyncOperation.delete:
         final serverId = _resolveServerId(
-            item.localId, SyncEntityType.customer);
+          item.localId,
+          SyncEntityType.customer,
+        );
         await remote.deleteCustomer(serverId);
         break;
     }
@@ -308,7 +331,9 @@ class SyncService {
         // we need the server-assigned ID (MongoDB ObjectId).
         String customerId = payload['customerId'] as String;
         final resolvedCustomerId = _queue.findServerIdByLocalId(
-            customerId, SyncEntityType.customer);
+          customerId,
+          SyncEntityType.customer,
+        );
         if (resolvedCustomerId != null) {
           customerId = resolvedCustomerId;
         }
@@ -317,7 +342,8 @@ class SyncService {
         // which is what createLedgerEntry expects as its `items` param.
         // The ApiService maps these to `linkedProducts` with the backend's
         // expected shape {productId, quantity, pricePerUnit}.
-        final items = (payload['items'] as List<dynamic>?)
+        final items =
+            (payload['items'] as List<dynamic>?)
                 ?.cast<Map<String, dynamic>>() ??
             [];
 
@@ -332,15 +358,19 @@ class SyncService {
 
         // Mark local transaction as synced
         final localTxns = local.getAllTransactions();
-        final localTxn =
-            localTxns.where((t) => t.id == item.localId).firstOrNull;
+        final localTxn = localTxns
+            .where((t) => t.id == item.localId)
+            .firstOrNull;
         if (localTxn != null) {
           localTxn.synced = true;
           await localTxn.save();
         }
 
-        await _queue.updateStatus(item.id,
-            status: SyncItemStatus.synced, serverId: remoteTxn.id);
+        await _queue.updateStatus(
+          item.id,
+          status: SyncItemStatus.synced,
+          serverId: remoteTxn.id,
+        );
         break;
 
       case SyncOperation.update:
@@ -350,9 +380,13 @@ class SyncService {
       case SyncOperation.delete:
         // Resolve UUID → server ObjectId
         final serverId = _resolveServerId(
-            item.localId, SyncEntityType.transaction);
-        await remote.deleteLedgerEntry(serverId,
-            reason: payload['reason'] as String? ?? 'Deleted offline');
+          item.localId,
+          SyncEntityType.transaction,
+        );
+        await remote.deleteLedgerEntry(
+          serverId,
+          reason: payload['reason'] as String? ?? 'Deleted offline',
+        );
         break;
     }
   }
@@ -372,14 +406,16 @@ class SyncService {
         final remoteProduct = await remote.createProduct(localProduct);
         // Save the remote version (with server ID) locally
         await local.saveProduct(remoteProduct);
-        await _queue.updateStatus(item.id,
-            status: SyncItemStatus.synced, serverId: remoteProduct.id);
+        await _queue.updateStatus(
+          item.id,
+          status: SyncItemStatus.synced,
+          serverId: remoteProduct.id,
+        );
         break;
 
       case SyncOperation.update:
         // Resolve UUID → server ObjectId if created offline
-        final serverId = _resolveServerId(
-            item.localId, SyncEntityType.product);
+        final serverId = _resolveServerId(item.localId, SyncEntityType.product);
         final payload = item.payload;
         await remote.updateProduct(serverId, payload);
         final localProduct = local.getProductById(item.localId);
@@ -390,8 +426,7 @@ class SyncService {
         break;
 
       case SyncOperation.delete:
-        final serverId = _resolveServerId(
-            item.localId, SyncEntityType.product);
+        final serverId = _resolveServerId(item.localId, SyncEntityType.product);
         await remote.deleteProduct(serverId);
         break;
     }
@@ -415,28 +450,38 @@ class SyncService {
         // update the model's customerId before sending.
         if (localNote.customerId != null) {
           final resolvedCustId = _queue.findServerIdByLocalId(
-              localNote.customerId!, SyncEntityType.customer);
+            localNote.customerId!,
+            SyncEntityType.customer,
+          );
           if (resolvedCustId != null) {
             // Update the local model's customerId to the server ID
             final updatedNote = localNote.copyWith(customerId: resolvedCustId);
             await local.saveDailyNote(updatedNote);
             final remoteNote = await remote.createNote(updatedNote);
             await local.saveDailyNote(remoteNote);
-            await _queue.updateStatus(item.id,
-                status: SyncItemStatus.synced, serverId: remoteNote.id);
+            await _queue.updateStatus(
+              item.id,
+              status: SyncItemStatus.synced,
+              serverId: remoteNote.id,
+            );
             break;
           }
         }
 
         final remoteNote = await remote.createNote(localNote);
         await local.saveDailyNote(remoteNote);
-        await _queue.updateStatus(item.id,
-            status: SyncItemStatus.synced, serverId: remoteNote.id);
+        await _queue.updateStatus(
+          item.id,
+          status: SyncItemStatus.synced,
+          serverId: remoteNote.id,
+        );
         break;
 
       case SyncOperation.update:
         final serverId = _resolveServerId(
-            item.localId, SyncEntityType.dailyNote);
+          item.localId,
+          SyncEntityType.dailyNote,
+        );
         final payload = item.payload;
         await remote.updateNote(serverId, payload);
         final localNote = local.getDailyNoteById(item.localId);
@@ -448,7 +493,9 @@ class SyncService {
 
       case SyncOperation.delete:
         final serverId = _resolveServerId(
-            item.localId, SyncEntityType.dailyNote);
+          item.localId,
+          SyncEntityType.dailyNote,
+        );
         await remote.deleteNote(serverId);
         break;
     }
@@ -456,10 +503,7 @@ class SyncService {
 
   // ── Progress emission ──────────────────────────────────────
 
-  void _emitProgress({
-    required bool isOnline,
-    bool isSyncing = false,
-  }) {
+  void _emitProgress({required bool isOnline, bool isSyncing = false}) {
     final pending = _queue.getCountPending();
     final failed = _queue.getCountFailed();
 
@@ -480,15 +524,25 @@ class SyncService {
   Future<void> syncNow() async {
     if (_connectivity.isOnline) {
       await flushQueue();
+    } else {
+      AppLogger.info('[SyncService] syncNow skipped — device is offline');
+      _emitProgress(isOnline: false, isSyncing: false);
     }
   }
 
   /// Retry all permanently failed items.
   Future<void> retryFailed() async {
+    final failedCount = _queue.getCountFailed();
+    AppLogger.info('[SyncService] Retrying $failedCount failed items');
     await _queue.retryAllFailed();
     _emitProgress(isOnline: _connectivity.isOnline);
     if (_connectivity.isOnline) {
       await flushQueue();
+    } else {
+      AppLogger.info(
+        '[SyncService] retryFailed: device is offline, items queued',
+      );
+      _emitProgress(isOnline: false, isSyncing: false);
     }
   }
 
