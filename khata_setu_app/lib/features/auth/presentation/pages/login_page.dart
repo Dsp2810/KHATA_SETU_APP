@@ -12,6 +12,7 @@ import '../../../../shared/widgets/custom_text_field.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
+import '../bloc/biometric_cubit.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -39,16 +40,14 @@ class _LoginPageState extends State<LoginPage>
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
-    _fadeAnim = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _animController, curve: Curves.easeOut),
-    );
-    _slideAnim = Tween<Offset>(
-      begin: const Offset(0, 0.15),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animController,
-      curve: Curves.easeOutCubic,
-    ));
+    _fadeAnim = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
+    _slideAnim = Tween<Offset>(begin: const Offset(0, 0.15), end: Offset.zero)
+        .animate(
+          CurvedAnimation(parent: _animController, curve: Curves.easeOutCubic),
+        );
     _animController.forward();
   }
 
@@ -62,11 +61,17 @@ class _LoginPageState extends State<LoginPage>
 
   void _onLogin() {
     if (_formKey.currentState?.validate() ?? false) {
-      context.read<AuthBloc>().add(LoginRequested(
-            phone: _phoneController.text.trim(),
-            password: _passwordController.text,
-          ));
+      context.read<AuthBloc>().add(
+        LoginRequested(
+          phone: _phoneController.text.trim(),
+          password: _passwordController.text,
+        ),
+      );
     }
+  }
+
+  void _onDemoLogin() {
+    context.read<AuthBloc>().add(const DemoLoginRequested());
   }
 
   @override
@@ -74,83 +79,87 @@ class _LoginPageState extends State<LoginPage>
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return BlocConsumer<AuthBloc, AuthState>(
-        listener: (context, state) {
-          if (state is Authenticated || state is AuthenticatedOffline) {
-            context.go(RouteConstants.dashboard);
-          } else if (state is AuthError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: AppColors.error,
+      listener: (context, state) {
+        if (state is Authenticated || state is AuthenticatedOffline) {
+          context.go(RouteConstants.dashboard);
+        } else if (state is AuthError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+      },
+      builder: (context, state) {
+        final isLoading = state is AuthLoading;
+
+        return Scaffold(
+          body: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: isDark
+                    ? [context.surfaceColor, context.backgroundColor]
+                    : [AppColors.primary.withOpacity(0.03), AppColors.white],
               ),
-            );
-          }
-        },
-        builder: (context, state) {
-          final isLoading = state is AuthLoading;
+            ),
+            child: SafeArea(
+              child: FadeTransition(
+                opacity: _fadeAnim,
+                child: SlideTransition(
+                  position: _slideAnim,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const SizedBox(height: AppSpacing.xl),
 
-          return Scaffold(
-            body: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: isDark
-                      ? [context.surfaceColor, context.backgroundColor]
-                      : [AppColors.primary.withValues(alpha: 0.03), AppColors.white],
-                ),
-              ),
-              child: SafeArea(
-                child: FadeTransition(
-                  opacity: _fadeAnim,
-                  child: SlideTransition(
-                    position: _slideAnim,
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(AppSpacing.lg),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            const SizedBox(height: AppSpacing.xl),
+                          // Logo
+                          AnimatedListItem(index: 0, child: _buildLogo()),
+                          const SizedBox(height: AppSpacing.xl),
 
-                            // Logo
-                            AnimatedListItem(
-                              index: 0,
-                              child: _buildLogo(),
-                            ),
-                            const SizedBox(height: AppSpacing.xl),
+                          // Welcome text
+                          AnimatedListItem(
+                            index: 1,
+                            child: _buildWelcomeText(isDark),
+                          ),
+                          const SizedBox(height: AppSpacing.xl),
 
-                            // Welcome text
-                            AnimatedListItem(
-                              index: 1,
-                              child: _buildWelcomeText(isDark),
-                            ),
-                            const SizedBox(height: AppSpacing.xl),
+                          // Login form card
+                          AnimatedListItem(
+                            index: 2,
+                            child: _buildFormCard(isDark, isLoading),
+                          ),
+                          const SizedBox(height: AppSpacing.lg),
 
-                            // Login form card
-                            AnimatedListItem(
-                              index: 2,
-                              child: _buildFormCard(isDark, isLoading),
-                            ),
-                            const SizedBox(height: AppSpacing.xl),
+                          // Social login section
+                          AnimatedListItem(
+                            index: 3,
+                            child: _buildSocialLogin(isDark),
+                          ),
+                          const SizedBox(height: AppSpacing.lg),
 
-                            // Register link
-                            AnimatedListItem(
-                              index: 3,
-                              child: _buildRegisterLink(),
-                            ),
-                          ],
-                        ),
+                          // Register link
+                          AnimatedListItem(
+                            index: 4,
+                            child: _buildRegisterLink(),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                 ),
               ),
             ),
-          );
-        },
-      );
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildLogo() {
@@ -165,8 +174,8 @@ class _LoginPageState extends State<LoginPage>
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 colors: [
-                  AppColors.primary.withValues(alpha: 0.2),
-                  AppColors.primary.withValues(alpha: 0.0),
+                  AppColors.primary.withOpacity(0.2),
+                  AppColors.primary.withOpacity(0.0),
                 ],
               ),
               shape: BoxShape.circle,
@@ -185,7 +194,7 @@ class _LoginPageState extends State<LoginPage>
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.3),
+                  color: AppColors.primary.withOpacity(0.3),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -215,9 +224,7 @@ class _LoginPageState extends State<LoginPage>
         const SizedBox(height: 6),
         Text(
           context.l10n.loginSubtitle,
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.grey500,
-          ),
+          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.grey500),
           textAlign: TextAlign.center,
         ),
       ],
@@ -232,7 +239,7 @@ class _LoginPageState extends State<LoginPage>
         borderRadius: BorderRadius.circular(AppRadius.xl),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withValues(alpha: 0.06),
+            color: AppColors.black.withOpacity(0.06),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -249,7 +256,8 @@ class _LoginPageState extends State<LoginPage>
             prefixIcon: Icons.phone_outlined,
             keyboardType: TextInputType.phone,
             maxLength: 10,
-            validator: (value) => Validators.validatePhone(value, l10n: context.l10n),
+            validator: (value) =>
+                Validators.validatePhone(value, l10n: context.l10n),
           ),
           const SizedBox(height: AppSpacing.md),
 
@@ -314,6 +322,7 @@ class _LoginPageState extends State<LoginPage>
               ),
               TextButton(
                 onPressed: () {
+                  // TODO: Implement forgot password
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text(context.l10n.comingSoon)),
                   );
@@ -339,7 +348,7 @@ class _LoginPageState extends State<LoginPage>
                 borderRadius: BorderRadius.circular(AppRadius.md),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.3),
+                    color: AppColors.primary.withOpacity(0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -357,8 +366,9 @@ class _LoginPageState extends State<LoginPage>
                             height: 22,
                             child: CircularProgressIndicator(
                               strokeWidth: 2.5,
-                              valueColor:
-                                  AlwaysStoppedAnimation(AppColors.white),
+                              valueColor: AlwaysStoppedAnimation(
+                                AppColors.white,
+                              ),
                             ),
                           )
                         : Row(
@@ -389,15 +399,185 @@ class _LoginPageState extends State<LoginPage>
     );
   }
 
+  Widget _buildSocialLogin(bool isDark) {
+    return Column(
+      children: [
+        // // Divider with text
+        // Row(
+        //   children: [
+        //     Expanded(child: Divider(color: AppColors.grey300)),
+        //     Padding(
+        //       padding: const EdgeInsets.symmetric(horizontal: 16),
+        //       child: Text(
+        //         context.l10n.orContinueWith,
+        //         style: AppTextStyles.caption.copyWith(color: AppColors.grey500),
+        //       ),
+        //     ),
+        //     Expanded(child: Divider(color: AppColors.grey300)),
+        //   ],
+        // ),
+        // const SizedBox(height: 16),
+
+        // Social buttons
+        // Row(
+        //   children: [
+        //     Expanded(
+        //       child: _buildSocialButton(
+        //         icon: Icons.phone_android,
+        //         label: context.l10n.otpLogin,
+        //         color: AppColors.success,
+        //         isDark: isDark,
+        //         onTap: () {
+        //           ScaffoldMessenger.of(context).showSnackBar(
+        //             SnackBar(content: Text(context.l10n.comingSoon)),
+        //           );
+        //         },
+        //       ),
+        //     ),
+        //     const SizedBox(width: 12),
+        //     Expanded(
+        //       child: _buildSocialButton(
+        //         icon: Icons.fingerprint,
+        //         label: context.l10n.biometricLoginLabel,
+        //         color: AppColors.info,
+        //         isDark: isDark,
+        //         onTap: () async {
+        //           final biometricCubit = context.read<BiometricCubit>();
+        //           final canBiometric = await biometricCubit.shouldRequireBiometric();
+
+        //           if (!mounted) return;
+
+        //           if (!canBiometric) {
+        //             ScaffoldMessenger.of(context).showSnackBar(
+        //               SnackBar(content: Text(context.l10n.biometricUnavailable)),
+        //             );
+        //             return;
+        //           }
+
+        //           final authenticated = await biometricCubit.authenticate(
+        //             localizedReason: context.l10n.biometricAuthReason,
+        //           );
+
+        //           if (!mounted) return;
+
+        //           if (authenticated) {
+        //             context.go(RouteConstants.dashboard);
+        //           } else {
+        //             ScaffoldMessenger.of(context).showSnackBar(
+        //               SnackBar(content: Text(context.l10n.biometricFailed)),
+        //             );
+        //           }
+        //         },
+        //       ),
+        //     ),
+        //   ],
+        // ),
+        const SizedBox(height: 16),
+
+        // Demo mode info — tap to enter demo mode
+        // GestureDetector(
+        //   onTap: _onDemoLogin,
+        //   child: Container(
+        //     padding: const EdgeInsets.all(AppSpacing.md),
+        //     decoration: BoxDecoration(
+        //       color: AppColors.info.withOpacity(0.08),
+        //       borderRadius: BorderRadius.circular(AppRadius.md),
+        //       border: Border.all(
+        //         color: AppColors.info.withOpacity(0.2),
+        //       ),
+        //     ),
+        //     child: Row(
+        //       children: [
+        //         Container(
+        //           padding: const EdgeInsets.all(8),
+        //           decoration: BoxDecoration(
+        //             color: AppColors.info.withOpacity(0.15),
+        //             shape: BoxShape.circle,
+        //           ),
+        //           child: const Icon(
+        //             Icons.lightbulb_outline,
+        //             color: AppColors.info,
+        //             size: 18,
+        //           ),
+        //         ),
+        //         const SizedBox(width: 12),
+        //         Expanded(
+        //           child: Column(
+        //             crossAxisAlignment: CrossAxisAlignment.start,
+        //             children: [
+        //               Text(
+        //                 context.l10n.demoModeActive,
+        //                 style: AppTextStyles.labelMedium.copyWith(
+        //                   color: AppColors.info,
+        //                   fontWeight: FontWeight.w600,
+        //                 ),
+        //               ),
+        //               const SizedBox(height: 2),
+        //               Text(
+        //                 context.l10n.demoModeHint,
+        //                 style: AppTextStyles.caption.copyWith(
+        //                   color: AppColors.grey600,
+        //                 ),
+        //               ),
+        //             ],
+        //           ),
+        //         ),
+        //       ],
+        //     ),
+        //   ),
+        // ),
+      ],
+    );
+  }
+
+  Widget _buildSocialButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required bool isDark,
+    required VoidCallback onTap,
+  }) {
+    return AnimatedScaleOnTap(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: context.cardColor,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(color: AppColors.grey200),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.black.withOpacity(0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: AppTextStyles.labelLarge.copyWith(
+                color: color,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildRegisterLink() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
           context.l10n.dontHaveAccount,
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.grey600,
-          ),
+          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.grey600),
         ),
         TextButton(
           onPressed: () => context.push(RouteConstants.register),

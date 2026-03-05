@@ -102,8 +102,11 @@ inventoryTransactionSchema.index({ shopId: 1, createdAt: -1 });
 inventoryTransactionSchema.index({ productId: 1, createdAt: -1 });
 inventoryTransactionSchema.index({ offlineId: 1 }, { sparse: true });
 
-// Pre-save middleware to update product stock
+// Pre-save middleware to update product stock.
+// Skipped when _skipStockUpdate is set (service manages stock atomically in a session).
 inventoryTransactionSchema.pre('save', async function (next) {
+  if (this._skipStockUpdate) return next();
+
   if (this.isNew) {
     const Product = mongoose.model('Product');
     const product = await Product.findById(this.productId);
@@ -114,7 +117,6 @@ inventoryTransactionSchema.pre('save', async function (next) {
     
     this.previousStock = product.currentStock;
     
-    // Update stock based on transaction type
     switch (this.type) {
       case 'stock_in':
       case 'return':
@@ -130,7 +132,6 @@ inventoryTransactionSchema.pre('save', async function (next) {
         product.currentStock -= this.quantity;
         break;
       case 'adjustment':
-        // For adjustment, quantity can be positive (add) or negative (subtract)
         product.currentStock = this.quantity;
         break;
     }

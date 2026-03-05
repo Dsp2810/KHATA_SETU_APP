@@ -73,10 +73,12 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: 'add',
+                parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) => const AddCustomerPage(),
               ),
               GoRoute(
                 path: ':id',
+                parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
                   return CustomerDetailsPage(customerId: id);
@@ -84,6 +86,7 @@ class AppRouter {
                 routes: [
                   GoRoute(
                     path: 'edit',
+                    parentNavigatorKey: _rootNavigatorKey,
                     builder: (context, state) {
                       final customer = state.extra as dynamic;
                       return EditCustomerPage(customer: customer);
@@ -103,6 +106,7 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: 'add',
+                parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) {
                   // Handle both Map extras (from bottom sheet) and String (backward compat)
                   String? customerId;
@@ -124,6 +128,7 @@ class AppRouter {
               ),
               GoRoute(
                 path: 'customer/:id',
+                parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
                   return CustomerTimelinePage(customerId: id);
@@ -141,6 +146,7 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: 'add',
+                parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) => const AddProductPage(),
               ),
             ],
@@ -155,6 +161,7 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: 'upi-setup',
+                parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) => const UpiSetupPage(),
               ),
             ],
@@ -179,6 +186,7 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: 'edit',
+                parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) {
                   final extra = state.extra as Map<String, dynamic>?;
                   return DailyNoteEditorPage(

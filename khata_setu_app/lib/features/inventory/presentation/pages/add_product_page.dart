@@ -1,6 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 
 import '../../../../core/constants/constants.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -36,6 +41,8 @@ class _AddProductPageState extends State<AddProductPage>
   String _selectedUnit = 'pcs';
   bool _isLoading = false;
   bool _trackInventory = true;
+  File? _selectedImage;
+  final ImagePicker _imagePicker = ImagePicker();
 
   late AnimationController _animController;
 
@@ -93,21 +100,160 @@ class _AddProductPageState extends State<AddProductPage>
     if (_formKey.currentState?.validate() ?? false) {
       setState(() => _isLoading = true);
 
-      context.read<InventoryBloc>().add(AddProduct(
-        name: _nameController.text.trim(),
-        category: _selectedCategory,
-        unit: _selectedUnit,
-        purchasePrice: double.tryParse(_buyPriceController.text) ?? 0,
-        sellingPrice: double.tryParse(_sellPriceController.text) ?? 0,
-        currentStock: double.tryParse(_stockController.text) ?? 0,
-        minStockLevel: double.tryParse(_minStockController.text) ?? 5,
-        sku: _skuController.text.trim().isNotEmpty
-            ? _skuController.text.trim()
-            : null,
-        description: _descriptionController.text.trim().isNotEmpty
-            ? _descriptionController.text.trim()
-            : null,
-      ));
+      // Save image to app's local storage directory, then dispatch
+      _saveImageLocally().then((localImagePath) {
+        if (!mounted) return;
+        context.read<InventoryBloc>().add(AddProduct(
+          name: _nameController.text.trim(),
+          category: _selectedCategory,
+          unit: _selectedUnit,
+          purchasePrice: double.tryParse(_buyPriceController.text) ?? 0,
+          sellingPrice: double.tryParse(_sellPriceController.text) ?? 0,
+          currentStock: double.tryParse(_stockController.text) ?? 0,
+          minStockLevel: double.tryParse(_minStockController.text) ?? 5,
+          sku: _skuController.text.trim().isNotEmpty
+              ? _skuController.text.trim()
+              : null,
+          description: _descriptionController.text.trim().isNotEmpty
+              ? _descriptionController.text.trim()
+              : null,
+          image: localImagePath,
+        ));
+      });
+    }
+  }
+
+  /// Save the selected image to app's local storage and return the path.
+  Future<String?> _saveImageLocally() async {
+    if (_selectedImage == null) return null;
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      final productImagesDir = Directory('${appDir.path}/product_images');
+      if (!productImagesDir.existsSync()) {
+        productImagesDir.createSync(recursive: true);
+      }
+      final ext = p.extension(_selectedImage!.path);
+      final filename = 'product_${DateTime.now().millisecondsSinceEpoch}$ext';
+      final savedImage = await _selectedImage!.copy(
+        '${productImagesDir.path}/$filename',
+      );
+      return savedImage.path;
+    } catch (e) {
+      debugPrint('Failed to save product image locally: $e');
+      return null;
+    }
+  }
+
+  /// Show bottom sheet to pick image from camera or gallery.
+  Future<void> _pickImage() async {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                context.l10n.addProductImage,
+                style: AppTextStyles.h4.copyWith(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildImageSourceOption(
+                    icon: Icons.camera_alt,
+                    label: 'Camera',
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      _getImage(ImageSource.camera);
+                    },
+                  ),
+                  _buildImageSourceOption(
+                    icon: Icons.photo_library,
+                    label: 'Gallery',
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      _getImage(ImageSource.gallery);
+                    },
+                  ),
+                  if (_selectedImage != null)
+                    _buildImageSourceOption(
+                      icon: Icons.delete_outline,
+                      label: 'Remove',
+                      color: AppColors.error,
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        setState(() => _selectedImage = null);
+                      },
+                    ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.md),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImageSourceOption({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    Color? color,
+  }) {
+    final c = color ?? AppColors.primary;
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: c.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 28, color: c),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: AppTextStyles.labelMedium.copyWith(
+              color: c,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _getImage(ImageSource source) async {
+    try {
+      final pickedFile = await _imagePicker.pickImage(
+        source: source,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+      if (pickedFile != null) {
+        setState(() => _selectedImage = File(pickedFile.path));
+      }
+    } catch (e) {
+      debugPrint('Image picker error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to pick image. Please try again.'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
     }
   }
 
@@ -135,7 +281,7 @@ class _AddProductPageState extends State<AddProductPage>
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: AppColors.success.withValues(alpha: 0.1),
+                    color: AppColors.success.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
@@ -197,6 +343,7 @@ class _AddProductPageState extends State<AddProductPage>
     setState(() {
       _selectedCategory = 'Grocery';
       _selectedUnit = 'pcs';
+      _selectedImage = null;
     });
   }
 
@@ -334,52 +481,80 @@ class _AddProductPageState extends State<AddProductPage>
 
   Widget _buildImagePlaceholder(bool isDark) {
     return AnimatedScaleOnTap(
-      onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.cameraGalleryComingSoon)),
-        );
-      },
+      onTap: _pickImage,
       child: Container(
         height: 160,
         decoration: BoxDecoration(
           color: context.surfaceColor,
           borderRadius: BorderRadius.circular(AppRadius.lg),
           border: Border.all(
-            color: AppColors.primary.withValues(alpha: 0.3),
+            color: AppColors.primary.withOpacity(0.3),
             width: 2,
             strokeAlign: BorderSide.strokeAlignCenter,
           ),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
+        child: _selectedImage != null
+            ? ClipRRect(
+                borderRadius: BorderRadius.circular(AppRadius.lg - 2),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.file(
+                      _selectedImage!,
+                      fit: BoxFit.cover,
+                    ),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: GestureDetector(
+                        onTap: _pickImage,
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: AppColors.black.withOpacity(0.6),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.edit,
+                            size: 18,
+                            color: AppColors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.add_a_photo_outlined,
+                      size: 36,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    context.l10n.addProductImage,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    context.l10n.tapToCaptureOrSelect,
+                    style: AppTextStyles.caption.copyWith(color: AppColors.grey500),
+                  ),
+                ],
               ),
-              child: const Icon(
-                Icons.add_a_photo_outlined,
-                size: 36,
-                color: AppColors.primary,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              context.l10n.addProductImage,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              context.l10n.tapToCaptureOrSelect,
-              style: AppTextStyles.caption.copyWith(color: AppColors.grey500),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -411,7 +586,7 @@ class _AddProductPageState extends State<AddProductPage>
                 decoration: BoxDecoration(
                   color: isSelected
                       ? AppColors.secondary
-                      : AppColors.secondary.withValues(alpha: 0.06),
+                      : AppColors.secondary.withOpacity(0.06),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: isSelected
@@ -532,15 +707,15 @@ class _AddProductPageState extends State<AddProductPage>
                 gradient: LinearGradient(
                   colors: [
                     (_profit >= 0 ? AppColors.success : AppColors.error)
-                        .withValues(alpha: 0.05),
+                        .withOpacity(0.05),
                     (_profit >= 0 ? AppColors.success : AppColors.error)
-                        .withValues(alpha: 0.12),
+                        .withOpacity(0.12),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(AppRadius.md),
                 border: Border.all(
                   color: (_profit >= 0 ? AppColors.success : AppColors.error)
-                      .withValues(alpha: 0.3),
+                      .withOpacity(0.3),
                 ),
               ),
               child: Row(
@@ -633,7 +808,7 @@ class _AddProductPageState extends State<AddProductPage>
             style: AppTextStyles.caption.copyWith(color: AppColors.grey500),
           ),
           value: _trackInventory,
-          activeThumbColor: AppColors.primary,
+          activeColor: AppColors.primary,
           onChanged: (val) => setState(() => _trackInventory = val),
         ),
 
@@ -685,10 +860,10 @@ class _AddProductPageState extends State<AddProductPage>
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.info.withValues(alpha: 0.1),
+                        color: AppColors.info.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: AppColors.info.withValues(alpha: 0.3),
+                          color: AppColors.info.withOpacity(0.3),
                         ),
                       ),
                       child: Text(
@@ -723,7 +898,7 @@ class _AddProductPageState extends State<AddProductPage>
         borderRadius: BorderRadius.circular(AppRadius.lg),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withValues(alpha: isDark ? 0.2 : 0.1),
+            color: AppColors.black.withOpacity(isDark ? 0.2 : 0.1),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -737,7 +912,7 @@ class _AddProductPageState extends State<AddProductPage>
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
+                  color: color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(icon, color: color, size: 20),

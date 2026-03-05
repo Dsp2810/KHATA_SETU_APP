@@ -118,6 +118,7 @@ class ProductRemoteDataSource {
       'taxRate': p.taxRate,
       'currentStock': p.currentStock,
       'minStockLevel': p.minStockLevel,
+      if (p.image != null) 'image': p.image,
       if (p.supplierName != null || p.supplierPhone != null)
         'supplier': {
           if (p.supplierName != null) 'name': p.supplierName,

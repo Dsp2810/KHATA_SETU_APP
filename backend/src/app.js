@@ -2,10 +2,12 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const path = require('path');
 
 const config = require('./config/config');
 const { apiLimiter } = require('./middleware/rateLimit.middleware');
 const { errorHandler } = require('./middleware/error.middleware');
+const { debugLogger } = require('./middleware/debug.middleware');
 
 // Import route aggregator
 const routes = require('./routes');
@@ -41,6 +43,16 @@ if (config.nodeEnv !== 'test') {
 =============================== */
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+/* ===============================
+   Static File Serving (Uploads)
+=============================== */
+app.use('/uploads', express.static(path.join(__dirname, '..', config.upload.path)));
+
+/* ===============================
+   Debug Request Logger
+=============================== */
+app.use(debugLogger);
 
 /* ===============================
    Root Route (IMPORTANT for Render)

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -139,34 +140,38 @@ class _InventoryPageState extends State<InventoryPage>
         ),
       ),
       // Always show FAB (except during error)
+      // Extra bottom padding to float above the glass bottom nav bar
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: (state is! InventoryError)
-          ? Container(
-              decoration: BoxDecoration(
-                gradient: AppGradients.primaryGradient,
-                borderRadius: BorderRadius.circular(AppRadius.circular),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.4),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: FloatingActionButton.extended(
-                onPressed: () async {
-                  final bloc = context.read<InventoryBloc>();
-                  await context.push('/inventory/add');
-                  // Reload products after returning from add page
-                  bloc.add(const LoadProducts());
-                },
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                icon: const Icon(Icons.add_rounded, color: Colors.white),
-                label: Text(
-                  context.l10n.addProduct,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
+          ? Padding(
+              padding: const EdgeInsets.only(bottom: 80),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: AppGradients.primaryGradient,
+                  borderRadius: BorderRadius.circular(AppRadius.circular),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.4),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: FloatingActionButton.extended(
+                  onPressed: () async {
+                    await context.push('/inventory/add');
+                    // Reload products after returning from add page
+                    context.read<InventoryBloc>().add(const LoadProducts());
+                  },
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  icon: const Icon(Icons.add_rounded, color: Colors.white),
+                  label: Text(
+                    context.l10n.addProduct,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),
@@ -192,7 +197,7 @@ class _InventoryPageState extends State<InventoryPage>
           children: [
             Icon(Icons.error_outline_rounded, 
                 size: 56, 
-                color: AppColors.error.withValues(alpha: 0.6)),
+                color: AppColors.error.withOpacity(0.6)),
             const SizedBox(height: 16),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -222,13 +227,13 @@ class _InventoryPageState extends State<InventoryPage>
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
+                color: AppColors.primary.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.inventory_2_outlined, 
                 size: 64, 
-                color: AppColors.primary.withValues(alpha: 0.6),
+                color: AppColors.primary.withOpacity(0.6),
               ),
             ),
             const SizedBox(height: 24),
@@ -254,7 +259,7 @@ class _InventoryPageState extends State<InventoryPage>
                 borderRadius: BorderRadius.circular(AppRadius.lg),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.3),
+                    color: AppColors.primary.withOpacity(0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -262,9 +267,8 @@ class _InventoryPageState extends State<InventoryPage>
               ),
               child: ElevatedButton.icon(
                 onPressed: () async {
-                  final bloc = context.read<InventoryBloc>();
                   await context.push('/inventory/add');
-                  bloc.add(const LoadProducts());
+                  context.read<InventoryBloc>().add(const LoadProducts());
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
@@ -316,7 +320,7 @@ class _InventoryPageState extends State<InventoryPage>
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: 5,
-              itemBuilder: (_, _) => Container(
+              itemBuilder: (_, __) => Container(
                 width: 80,
                 margin: const EdgeInsets.only(right: AppSpacing.xs),
                 decoration: BoxDecoration(
@@ -337,7 +341,7 @@ class _InventoryPageState extends State<InventoryPage>
                 mainAxisSpacing: AppSpacing.sm,
               ),
               itemCount: 6,
-              itemBuilder: (_, _) => Container(
+              itemBuilder: (_, __) => Container(
                 decoration: BoxDecoration(
                   color: isDark ? AppColors.grey800 : AppColors.grey200,
                   borderRadius: BorderRadius.circular(AppRadius.md),
@@ -416,7 +420,7 @@ class _InventoryPageState extends State<InventoryPage>
                   gradient: LinearGradient(
                     colors: [
                       AppColors.warning,
-                      AppColors.warning.withValues(alpha: 0.7),
+                      AppColors.warning.withOpacity(0.7),
                     ],
                   ),
                 ),
@@ -560,7 +564,7 @@ class _InventoryPageState extends State<InventoryPage>
                       boxShadow: isSelected
                           ? [
                               BoxShadow(
-                                color: AppColors.primary.withValues(alpha: 0.3),
+                                color: AppColors.primary.withOpacity(0.3),
                                 blurRadius: 8,
                                 spreadRadius: -2,
                               ),
@@ -684,7 +688,7 @@ class _InventoryPageState extends State<InventoryPage>
                     borderRadius: BorderRadius.circular(AppRadius.xl),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.4),
+                        color: AppColors.primary.withOpacity(0.4),
                         blurRadius: 20,
                         offset: const Offset(0, 8),
                       ),
@@ -695,7 +699,7 @@ class _InventoryPageState extends State<InventoryPage>
                       Container(
                         padding: const EdgeInsets.all(AppSpacing.sm),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
+                          color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(AppRadius.sm),
                         ),
                         child: Badge(
@@ -781,8 +785,8 @@ class _InventoryPageState extends State<InventoryPage>
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                context.cardColor.withValues(alpha: 0.95),
-                context.backgroundColor.withValues(alpha: 0.98),
+                context.cardColor.withOpacity(0.95),
+                context.backgroundColor.withOpacity(0.98),
               ],
             ),
             borderRadius: const BorderRadius.vertical(
@@ -942,7 +946,7 @@ class _InventoryPageState extends State<InventoryPage>
                                     AppRadius.xl,
                                   ),
                                   border: Border.all(
-                                    color: AppColors.error.withValues(alpha: 0.5),
+                                    color: AppColors.error.withOpacity(0.5),
                                   ),
                                 ),
                                 child: Row(
@@ -1398,10 +1402,7 @@ class _GlassProductCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Center(
-                    child: Text(
-                      product.categoryEmoji,
-                      style: const TextStyle(fontSize: 44),
-                    ),
+                    child: _buildProductImage(product),
                   ),
                   const Spacer(),
                   Text(
@@ -1493,9 +1494,8 @@ class _GlassProductCard extends StatelessWidget {
                       ),
                       GestureDetector(
                         onTap: () {
-                          if (quantity < product.currentStock.toInt()) {
+                          if (quantity < product.currentStock.toInt())
                             cartManager.incrementQuantity(product.id);
-                          }
                         },
                         child: const Icon(
                           Icons.add_rounded,
@@ -1516,7 +1516,7 @@ class _GlassProductCard extends StatelessWidget {
                   gradient: LinearGradient(
                     colors: [
                       AppColors.warning,
-                      AppColors.warning.withValues(alpha: 0.7),
+                      AppColors.warning.withOpacity(0.7),
                     ],
                   ),
                 ),
@@ -1525,7 +1525,7 @@ class _GlassProductCard extends StatelessWidget {
               Positioned.fill(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.5),
+                    color: Colors.black.withOpacity(0.5),
                     borderRadius: BorderRadius.circular(AppRadius.xl),
                   ),
                   child: Center(
@@ -1574,11 +1574,9 @@ class _GlassInventoryCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppRadius.sm),
                 border: Border.all(color: context.glassBorderColor),
               ),
-              child: Center(
-                child: Text(
-                  product.categoryEmoji,
-                  style: const TextStyle(fontSize: 28),
-                ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(AppRadius.sm),
+                child: _buildInventoryProductImage(product),
               ),
             ),
             const SizedBox(width: AppSpacing.md),
@@ -1941,14 +1939,14 @@ class _GlassCheckoutSheetState extends State<_GlassCheckoutSheet> {
                       Switch(
                         value: _addToKhata,
                         onChanged: (v) => setState(() => _addToKhata = v),
-                        activeThumbColor: AppColors.primary,
+                        activeColor: AppColors.primary,
                       ),
                     ],
                   ),
                   if (_addToKhata) ...[
                     const SizedBox(height: AppSpacing.md),
                     DropdownButtonFormField<String>(
-                      initialValue: _selectedCustomer,
+                      value: _selectedCustomer,
                       dropdownColor: context.cardColor,
                       decoration: InputDecoration(
                         labelText: context.l10n.selectCustomer,
@@ -2026,4 +2024,86 @@ class _GlassPaymentChip extends StatelessWidget {
       ),
     );
   }
+}
+
+// ═══════════════════════ Image Helpers ═══════════════════════
+
+/// Build product image for _GlassProductCard (large, centered)
+Widget _buildProductImage(ProductModel product) {
+  if (product.image != null && product.image!.isNotEmpty) {
+    if (product.image!.startsWith('/')) {
+      final file = File(product.image!);
+      if (file.existsSync()) {
+        return Image.file(
+          file,
+          width: 60,
+          height: 60,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => Text(
+            product.categoryEmoji,
+            style: const TextStyle(fontSize: 44),
+          ),
+        );
+      }
+    }
+    if (product.image!.startsWith('http')) {
+      return Image.network(
+        product.image!,
+        width: 60,
+        height: 60,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Text(
+          product.categoryEmoji,
+          style: const TextStyle(fontSize: 44),
+        ),
+      );
+    }
+  }
+  return Text(
+    product.categoryEmoji,
+    style: const TextStyle(fontSize: 44),
+  );
+}
+
+/// Build product image for _GlassInventoryCard (small 50x50 tile)
+Widget _buildInventoryProductImage(ProductModel product) {
+  if (product.image != null && product.image!.isNotEmpty) {
+    if (product.image!.startsWith('/')) {
+      final file = File(product.image!);
+      if (file.existsSync()) {
+        return Image.file(
+          file,
+          width: 50,
+          height: 50,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => Center(
+            child: Text(
+              product.categoryEmoji,
+              style: const TextStyle(fontSize: 28),
+            ),
+          ),
+        );
+      }
+    }
+    if (product.image!.startsWith('http')) {
+      return Image.network(
+        product.image!,
+        width: 50,
+        height: 50,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Center(
+          child: Text(
+            product.categoryEmoji,
+            style: const TextStyle(fontSize: 28),
+          ),
+        ),
+      );
+    }
+  }
+  return Center(
+    child: Text(
+      product.categoryEmoji,
+      style: const TextStyle(fontSize: 28),
+    ),
+  );
 }

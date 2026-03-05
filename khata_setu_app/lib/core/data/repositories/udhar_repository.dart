@@ -2,9 +2,9 @@ import 'dart:convert';
 
 import 'package:uuid/uuid.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter/foundation.dart';
 import 'dart:io';
 
-import '../../utils/app_logger.dart';
 import '../datasources/udhar_local_datasource.dart';
 import '../datasources/udhar_remote_datasource.dart';
 import '../models/customer_model.dart';
@@ -37,7 +37,7 @@ class UdharRepository {
         }
         return remoteCustomers;
       } catch (e) {
-        AppLogger.warning('Remote fetch failed, using local: $e');
+        debugPrint('Remote fetch failed, using local: $e');
       }
     }
     return _local.getAllCustomers();
@@ -84,7 +84,7 @@ class UdharRepository {
         await _local.saveCustomer(remoteCustomer);
         return remoteCustomer;
       } catch (e) {
-        AppLogger.warning('Remote create failed, saving locally: $e');
+        debugPrint('Remote create failed, saving locally: $e');
       }
     }
 
@@ -105,10 +105,10 @@ class UdharRepository {
   }
 
   Future<void> updateCustomer(CustomerModel customer) async {
-    // Try remote — use the server's response to keep balance in sync
+    // Try remote
     if (_hasRemote) {
       try {
-        final remoteCustomer = await _remote!.updateCustomer(customer.id, {
+        await _remote!.updateCustomer(customer.id, {
           'name': customer.name,
           'phone': customer.phone,
           if (customer.email != null) 'email': customer.email,
@@ -116,11 +116,9 @@ class UdharRepository {
           'creditLimit': customer.creditLimit,
           if (customer.notes != null) 'notes': customer.notes,
         });
-        // Save the server-returned model (has authoritative balance)
-        await _local.saveCustomer(remoteCustomer);
-        return;
+        customer.synced = true;
       } catch (e) {
-        AppLogger.warning('Remote update failed: $e');
+        debugPrint('Remote update failed: $e');
         customer.synced = false;
       }
     } else {
@@ -134,7 +132,7 @@ class UdharRepository {
       try {
         await _remote!.deleteCustomer(id);
       } catch (e) {
-        AppLogger.warning('Remote delete failed: $e');
+        debugPrint('Remote delete failed: $e');
       }
     }
     await _local.deleteCustomer(id);
@@ -178,7 +176,7 @@ class UdharRepository {
         await _local.saveTransactionDirect(remoteTxn, customerId);
         return remoteTxn;
       } catch (e) {
-        AppLogger.warning('Remote credit failed, saving locally: $e');
+        debugPrint('Remote credit failed, saving locally: $e');
       }
     }
 
@@ -206,7 +204,7 @@ class UdharRepository {
       try {
         final remoteTxn = await _remote!.createLedgerEntry(
           customerId: customerId,
-          type: 'debit', // Backend enum: 'credit' | 'debit'
+          type: 'payment',
           amount: amount,
           description: description ?? 'Payment received',
           paymentMode: paymentModeStr,
@@ -214,7 +212,7 @@ class UdharRepository {
         await _local.saveTransactionDirect(remoteTxn, customerId);
         return remoteTxn;
       } catch (e) {
-        AppLogger.warning('Remote payment failed, saving locally: $e');
+        debugPrint('Remote payment failed, saving locally: $e');
       }
     }
 
@@ -247,14 +245,14 @@ class UdharRepository {
     final transactions = _local.getTransactionsForCustomer(customerId);
     if (transactions.isEmpty) return null;
 
-    // Use .first because list is sorted newest-first (desc by timestamp)
+    // transactions are sorted newest-first, so .first is the most recent
     final lastTxn = transactions.first;
 
     if (_hasRemote) {
       try {
         await _remote!.deleteLedgerEntry(lastTxn.id, reason: 'Undo');
       } catch (e) {
-        AppLogger.warning('Remote undo failed: $e');
+        debugPrint('Remote undo failed: $e');
       }
     }
 

@@ -153,12 +153,15 @@ class _LedgerPageState extends State<LedgerPage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return BlocListener<TransactionBloc, TransactionState>(
+        listenWhen: (prev, curr) =>
+            curr is TransactionAdded ||
+            curr is TransactionUndone,
         listener: (context, state) {
-          // After a new transaction is added from add page, reload
-          if (state is TransactionAdded) {
-            context.read<TransactionBloc>().add(LoadAllTransactions());
-            context.read<CustomerBloc>().add(LoadCustomers());
-          }
+          // After any transaction mutation, refresh customers too
+          // (balances changed). The BLoC now auto-emits
+          // AllTransactionsLoaded after mutations, so no need to
+          // manually dispatch LoadAllTransactions here.
+          context.read<CustomerBloc>().add(LoadCustomers());
         },
         child: Scaffold(
           backgroundColor: Colors.transparent,
