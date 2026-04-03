@@ -11,6 +11,7 @@ import 'models/shop_upi_model.dart';
 import 'models/product_model.dart';
 import 'models/daily_note_model.dart';
 import 'models/app_notification_model.dart';
+import 'models/sync_queue_item_model.dart';
 
 /// Hive box names
 class HiveBoxes {
@@ -22,6 +23,7 @@ class HiveBoxes {
   static const String appMeta = 'app_meta';
   static const String dailyNotes = 'daily_notes';
   static const String notifications = 'app_notifications';
+  static const String syncQueue = 'sync_queue';
 }
 
 /// Key used to persist the Hive encryption key in flutter_secure_storage.
@@ -64,6 +66,10 @@ class HiveInitializer {
     Hive.registerAdapter(DailyNoteModelAdapter());
     Hive.registerAdapter(DailyItemModelAdapter());
     Hive.registerAdapter(AppNotificationModelAdapter());
+    Hive.registerAdapter(SyncQueueItemModelAdapter());
+    Hive.registerAdapter(SyncEntityTypeAdapter());
+    Hive.registerAdapter(SyncOperationAdapter());
+    Hive.registerAdapter(SyncItemStatusAdapter());
 
     // Open encrypted boxes (appMeta unencrypted — no sensitive data)
     await Future.wait([
@@ -80,6 +86,8 @@ class HiveInitializer {
       Hive.openBox<DailyNoteModel>(HiveBoxes.dailyNotes,
           encryptionCipher: cipher),
       Hive.openBox<AppNotificationModel>(HiveBoxes.notifications,
+          encryptionCipher: cipher),
+      Hive.openBox<SyncQueueItemModel>(HiveBoxes.syncQueue,
           encryptionCipher: cipher),
       Hive.openBox(HiveBoxes.appMeta), // meta stays unencrypted
     ]);
@@ -109,5 +117,6 @@ class HiveInitializer {
     await Hive.box<TransactionModel>(HiveBoxes.transactions).clear();
     await Hive.box<DailySummaryModel>(HiveBoxes.dailySummaries).clear();
     await Hive.box<ProductModel>(HiveBoxes.products).clear();
+    await Hive.box<SyncQueueItemModel>(HiveBoxes.syncQueue).clear();
   }
 }

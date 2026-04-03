@@ -41,16 +41,14 @@ class _LoginPageState extends State<LoginPage>
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
-    _fadeAnim = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _animController, curve: Curves.easeOut),
-    );
-    _slideAnim = Tween<Offset>(
-      begin: const Offset(0, 0.15),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animController,
-      curve: Curves.easeOutCubic,
-    ));
+    _fadeAnim = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
+    _slideAnim = Tween<Offset>(begin: const Offset(0, 0.15), end: Offset.zero)
+        .animate(
+          CurvedAnimation(parent: _animController, curve: Curves.easeOutCubic),
+        );
     _animController.forward();
   }
 
@@ -64,10 +62,12 @@ class _LoginPageState extends State<LoginPage>
 
   void _onLogin() {
     if (_formKey.currentState?.validate() ?? false) {
-      context.read<AuthBloc>().add(LoginRequested(
-            phone: _phoneController.text.trim(),
-            password: _passwordController.text,
-          ));
+      context.read<AuthBloc>().add(
+        LoginRequested(
+          phone: _phoneController.text.trim(),
+          password: _passwordController.text,
+        ),
+      );
     }
   }
 
@@ -84,97 +84,101 @@ class _LoginPageState extends State<LoginPage>
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return BlocConsumer<AuthBloc, AuthState>(
-        listener: (context, state) {
-          if (state is Authenticated || state is AuthenticatedOffline) {
-            context.go(RouteConstants.dashboard);
-          } else if (state is AuthError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: AppColors.error,
+      listener: (context, state) {
+        if (state is Authenticated || state is AuthenticatedOffline) {
+          context.go(RouteConstants.dashboard);
+        } else if (state is AuthError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+      },
+      builder: (context, state) {
+        final isLoading = state is AuthLoading;
+
+        return Scaffold(
+          body: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: isDark
+                    ? [context.surfaceColor, context.backgroundColor]
+                    : [AppColors.primary.withOpacity(0.03), AppColors.white],
               ),
-            );
-          }
-        },
-        builder: (context, state) {
-          final isLoading = state is AuthLoading;
+            ),
+            child: SafeArea(
+              child: FadeTransition(
+                opacity: _fadeAnim,
+                child: SlideTransition(
+                  position: _slideAnim,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const SizedBox(height: AppSpacing.xl),
 
-          return Scaffold(
-            body: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: isDark
-                      ? [context.surfaceColor, context.backgroundColor]
-                      : [AppColors.primary.withValues(alpha: 0.03), AppColors.white],
-                ),
-              ),
-              child: SafeArea(
-                child: FadeTransition(
-                  opacity: _fadeAnim,
-                  child: SlideTransition(
-                    position: _slideAnim,
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(AppSpacing.lg),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            const SizedBox(height: AppSpacing.xl),
+                          // Logo
+                          AnimatedListItem(index: 0, child: _buildLogo()),
+                          const SizedBox(height: AppSpacing.xl),
 
-                            // Logo
+                          // Welcome text
+                          AnimatedListItem(
+                            index: 1,
+                            child: _buildWelcomeText(isDark),
+                          ),
+                          if (DemoConfig.isDemoMode) ...[
+                            const SizedBox(height: AppSpacing.md),
                             AnimatedListItem(
-                              index: 0,
-                              child: _buildLogo(),
-                            ),
-                            const SizedBox(height: AppSpacing.xl),
-
-                            // Welcome text
-                            AnimatedListItem(
-                              index: 1,
-                              child: _buildWelcomeText(isDark),
-                            ),
-                            if (DemoConfig.isDemoMode) ...[
-                              const SizedBox(height: AppSpacing.md),
-                              AnimatedListItem(
-                                index: 2,
-                                child: _buildDemoModeHint(isDark),
-                              ),
-                            ],
-                            const SizedBox(height: AppSpacing.xl),
-
-                            // Login form card
-                            AnimatedListItem(
-                              index: 3,
-                              child: _buildFormCard(isDark, isLoading),
-                            ),
-                            if (kIsWeb && DemoConfig.apkDownloadUrl.isNotEmpty) ...[
-                              const SizedBox(height: AppSpacing.md),
-                              AnimatedListItem(
-                                index: 4,
-                                child: _buildApkDownloadButton(),
-                              ),
-                            ],
-                            const SizedBox(height: AppSpacing.xl),
-
-                            // Register link
-                            AnimatedListItem(
-                              index: 5,
-                              child: _buildRegisterLink(),
+                              index: 2,
+                              child: _buildDemoModeHint(isDark),
                             ),
                           ],
-                        ),
+                          const SizedBox(height: AppSpacing.xl),
+
+                          // Login form card
+                          AnimatedListItem(
+                            index: 3,
+                            child: _buildFormCard(isDark, isLoading),
+                          ),
+                          if (kIsWeb && DemoConfig.apkDownloadUrl.isNotEmpty) ...[
+                            const SizedBox(height: AppSpacing.md),
+                            AnimatedListItem(
+                              index: 4,
+                              child: _buildApkDownloadButton(),
+                            ),
+                          ],
+                          const SizedBox(height: AppSpacing.xl),
+
+                          // Register link
+                          AnimatedListItem(
+                            index: 5,
+                            child: _buildRegisterLink(),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                 ),
               ),
             ),
-          );
-        },
-      );
+          ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildLogo() {
@@ -189,8 +193,8 @@ class _LoginPageState extends State<LoginPage>
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 colors: [
-                  AppColors.primary.withValues(alpha: 0.2),
-                  AppColors.primary.withValues(alpha: 0.0),
+                  AppColors.primary.withOpacity(0.2),
+                  AppColors.primary.withOpacity(0.0),
                 ],
               ),
               shape: BoxShape.circle,
@@ -209,7 +213,7 @@ class _LoginPageState extends State<LoginPage>
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.3),
+                  color: AppColors.primary.withOpacity(0.3),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -239,9 +243,7 @@ class _LoginPageState extends State<LoginPage>
         const SizedBox(height: 6),
         Text(
           context.l10n.loginSubtitle,
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.grey500,
-          ),
+          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.grey500),
           textAlign: TextAlign.center,
         ),
       ],
@@ -303,7 +305,7 @@ class _LoginPageState extends State<LoginPage>
         borderRadius: BorderRadius.circular(AppRadius.xl),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withValues(alpha: 0.06),
+            color: AppColors.black.withOpacity(0.06),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -320,7 +322,8 @@ class _LoginPageState extends State<LoginPage>
             prefixIcon: Icons.phone_outlined,
             keyboardType: TextInputType.phone,
             maxLength: 10,
-            validator: (value) => Validators.validatePhone(value, l10n: context.l10n),
+            validator: (value) =>
+                Validators.validatePhone(value, l10n: context.l10n),
           ),
           const SizedBox(height: AppSpacing.md),
 
@@ -385,6 +388,7 @@ class _LoginPageState extends State<LoginPage>
               ),
               TextButton(
                 onPressed: () {
+                  // TODO: Implement forgot password
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text(context.l10n.comingSoon)),
                   );
@@ -410,7 +414,7 @@ class _LoginPageState extends State<LoginPage>
                 borderRadius: BorderRadius.circular(AppRadius.md),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.3),
+                    color: AppColors.primary.withOpacity(0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -428,8 +432,9 @@ class _LoginPageState extends State<LoginPage>
                             height: 22,
                             child: CircularProgressIndicator(
                               strokeWidth: 2.5,
-                              valueColor:
-                                  AlwaysStoppedAnimation(AppColors.white),
+                              valueColor: AlwaysStoppedAnimation(
+                                AppColors.white,
+                              ),
                             ),
                           )
                         : Row(
@@ -489,9 +494,7 @@ class _LoginPageState extends State<LoginPage>
       children: [
         Text(
           context.l10n.dontHaveAccount,
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.grey600,
-          ),
+          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.grey600),
         ),
         TextButton(
           onPressed: () => context.push(RouteConstants.register),

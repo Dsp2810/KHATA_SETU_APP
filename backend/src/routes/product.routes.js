@@ -8,6 +8,7 @@ const {
   validate,
   validateObjectId,
 } = require('../middleware');
+const { uploadProductImage } = require('../middleware/upload.middleware');
 const {
   createProductSchema,
   updateProductSchema,
@@ -19,10 +20,11 @@ const {
 router.use(authenticate);
 router.use(authorizeShopAccess);
 
-// Product routes
+// Product creation with optional image upload
 router.post(
   '/',
   requirePermission('manage_inventory'),
+  uploadProductImage,
   validate(createProductSchema),
   productController.createProduct
 );
@@ -88,6 +90,15 @@ router.get(
   requirePermission('view_inventory'),
   validateObjectId('productId'),
   productController.getStockHistory
+);
+
+// Image upload for existing product
+router.post(
+  '/:productId/image',
+  requirePermission('manage_inventory'),
+  validateObjectId('productId'),
+  uploadProductImage,
+  productController.uploadProductImage
 );
 
 module.exports = router;

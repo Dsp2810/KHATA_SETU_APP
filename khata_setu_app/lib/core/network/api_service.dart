@@ -234,7 +234,7 @@ class ApiService {
   }) async {
     await _dio.delete(
       ApiEndpoints.ledgerEntry(shopId, entryId),
-      data: {'reason': ?reason},
+      data: {'reason': reason ?? 'Deleted'},
     );
   }
 

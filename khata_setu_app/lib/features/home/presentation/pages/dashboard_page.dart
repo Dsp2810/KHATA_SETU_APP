@@ -82,18 +82,42 @@ class _DashboardPageState extends State<DashboardPage>
       body: AmbientBackground(
         child: SafeArea(
           bottom: false,
-          child: BlocListener<DashboardCubit, DashboardState>(
-            listener: (context, dashState) {
-              if (dashState is DashboardShopLoaded) {
-                setState(() {
-                  _selectedShop = dashState.shopName;
-                  _shops = dashState.shops;
-                });
-              }
-            },
+          child: MultiBlocListener(
+            listeners: [
+              BlocListener<DashboardCubit, DashboardState>(
+                listener: (context, dashState) {
+                  if (dashState is DashboardShopLoaded) {
+                    setState(() {
+                      _selectedShop = dashState.shopName;
+                      _shops = dashState.shops;
+                    });
+                  }
+                },
+              ),
+              // Auto-refresh dashboard when transactions change anywhere
+              BlocListener<TransactionBloc, TransactionState>(
+                listenWhen: (prev, curr) =>
+                    curr is TransactionAdded ||
+                    curr is TransactionUndone ||
+                    curr is AllTransactionsLoaded,
+                listener: (context, state) {
+                  if (state is TransactionAdded || state is TransactionUndone) {
+                    // Reload customers to update balances on dashboard
+                    context.read<CustomerBloc>().add(LoadCustomers());
+                  }
+                  // AllTransactionsLoaded is now auto-emitted after mutations,
+                  // so the BlocBuilder below will rebuild automatically.
+                },
+              ),
+            ],
             child: BlocBuilder<CustomerBloc, CustomerState>(
             builder: (context, custState) {
               return BlocBuilder<TransactionBloc, TransactionState>(
+                buildWhen: (prev, curr) =>
+                    curr is AllTransactionsLoaded ||
+                    curr is TransactionLoading ||
+                    curr is TransactionInitial ||
+                    curr is TransactionError,
                 builder: (context, txnState) {
                   // Show loading spinner if both BLoCs are still in initial state
                   if (custState is CustomerLoading ||
@@ -206,7 +230,7 @@ class _DashboardPageState extends State<DashboardPage>
               );
             },
           ),
-          ), // BlocListener
+          ), // MultiBlocListener
         ),
       ),
     );

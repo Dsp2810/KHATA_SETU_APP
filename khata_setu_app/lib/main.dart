@@ -20,6 +20,7 @@ import 'features/daily_notebook/presentation/bloc/daily_note_bloc.dart';
 import 'features/home/presentation/bloc/dashboard_cubit.dart';
 import 'features/notifications/presentation/bloc/notification_bloc.dart';
 import 'features/notifications/presentation/bloc/notification_event.dart';
+import 'features/sync/presentation/bloc/sync_cubit.dart';
 import 'l10n/generated/app_localizations.dart';
 
 void main() async {
@@ -79,6 +80,7 @@ class KhataSetuApp extends StatelessWidget {
         BlocProvider(create: (_) => getIt<DailyNoteBloc>()),
         BlocProvider(create: (_) => getIt<DashboardCubit>()),
         BlocProvider(create: (_) => getIt<NotificationBloc>()..add(const LoadNotifications())),
+        BlocProvider(create: (_) => getIt<SyncCubit>()),
       ],
       child: BlocBuilder<LanguageCubit, Locale>(
         builder: (context, locale) {

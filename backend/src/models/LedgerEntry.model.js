@@ -114,9 +114,51 @@ ledgerEntrySchema.index({ shopId: 1, type: 1, createdAt: -1 });
 ledgerEntrySchema.index({ offlineId: 1 }, { sparse: true });
 ledgerEntrySchema.index({ isDeleted: 1 });
 
-// NOTE: Balance calculation (balanceAfter) and customer balance updates
-// are handled atomically in the ledger controller using MongoDB sessions.
-// This avoids the race condition of double-fetching the customer document
-// and ensures consistency under concurrent requests.
+// Pre-validate middleware to calculate balanceAfter before validation.
+// Skipped when _skipBalanceUpdate is set (service manages balance in a session).
+ledgerEntrySchema.pre('validate', async function (next) {
+  if (this._skipBalanceUpdate) return next();
+
+  if (this.isNew && this.balanceAfter == null) {
+    const Customer = mongoose.model('Customer');
+    const customer = await Customer.findById(this.customerId);
+    
+    if (!customer) {
+      return next(new Error('Customer not found'));
+    }
+    
+    if (this.type === 'credit') {
+      this.balanceAfter = customer.currentBalance + this.amount;
+    } else {
+      this.balanceAfter = customer.currentBalance - this.amount;
+    }
+  }
+  next();
+});
+
+// Pre-save middleware to update customer balance.
+// Skipped when _skipBalanceUpdate is set (service manages balance atomically in a session).
+ledgerEntrySchema.pre('save', async function (next) {
+  if (this._skipBalanceUpdate) return next();
+
+  if (this.isNew) {
+    const Customer = mongoose.model('Customer');
+    const customer = await Customer.findById(this.customerId);
+    
+    if (!customer) {
+      return next(new Error('Customer not found'));
+    }
+    
+    if (this.type === 'credit') {
+      customer.currentBalance += this.amount;
+    } else {
+      customer.currentBalance -= this.amount;
+    }
+    
+    customer.lastTransactionAt = new Date();
+    await customer.save();
+  }
+  next();
+});
 
 module.exports = mongoose.model('LedgerEntry', ledgerEntrySchema);

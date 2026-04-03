@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
@@ -11,10 +9,6 @@ import 'transaction_state.dart';
 
 class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
   UdharRepository _repository;
-
-  /// Callback to notify CustomerBloc to refresh after transaction changes.
-  /// Set by the widget tree (e.g., via DI or in the page that provides both BLoCs).
-  VoidCallback? onTransactionChanged;
 
   TransactionBloc(this._repository) : super(TransactionInitial()) {
     on<LoadTransactions>(_onLoadCustomerTransactions);
@@ -35,6 +29,8 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
   void _onLoadCustomerTransactions(
       LoadTransactions event, Emitter<TransactionState> emit) {
     try {
+      emit(TransactionLoading());
+
       final customer = _repository.getCustomer(event.customerId);
       final transactions = _repository.getTransactions(event.customerId);
       final grouped = _repository.getGroupedTransactions(event.customerId);
@@ -55,6 +51,8 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
   void _onLoadAll(
       LoadAllTransactions event, Emitter<TransactionState> emit) {
     try {
+      emit(TransactionLoading());
+
       final transactions = _repository.getAllTransactions();
 
       // Group all transactions by date
@@ -75,7 +73,6 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
 
   Future<void> _onAddCredit(
       AddCredit event, Emitter<TransactionState> emit) async {
-    emit(TransactionLoading());
     try {
       final txn = await _repository.addCredit(
         customerId: event.customerId,
@@ -88,11 +85,9 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
       emit(TransactionAdded(
           transaction: txn, updatedCustomer: updatedCustomer));
 
-      // Reload the customer timeline
-      _emitReload(event.customerId, emit);
-
-      // Notify CustomerBloc to refresh (balance changed)
-      onTransactionChanged?.call();
+      // Reload both customer-scoped AND global views
+      _emitCustomerReload(event.customerId, emit);
+      _emitGlobalReload(emit);
     } catch (e) {
       emit(TransactionError(mapExceptionToFailure(e).message));
     }
@@ -100,7 +95,6 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
 
   Future<void> _onAddPayment(
       AddPayment event, Emitter<TransactionState> emit) async {
-    emit(TransactionLoading());
     try {
       final txn = await _repository.addPayment(
         customerId: event.customerId,
@@ -113,11 +107,9 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
       emit(TransactionAdded(
           transaction: txn, updatedCustomer: updatedCustomer));
 
-      // Reload the customer timeline
-      _emitReload(event.customerId, emit);
-
-      // Notify CustomerBloc to refresh (balance changed)
-      onTransactionChanged?.call();
+      // Reload both customer-scoped AND global views
+      _emitCustomerReload(event.customerId, emit);
+      _emitGlobalReload(emit);
     } catch (e) {
       emit(TransactionError(mapExceptionToFailure(e).message));
     }
@@ -125,14 +117,12 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
 
   Future<void> _onUndo(
       UndoLastTransaction event, Emitter<TransactionState> emit) async {
-    emit(TransactionLoading());
     try {
       final undone = await _repository.undoLastTransaction(event.customerId);
       if (undone != null) {
         emit(TransactionUndone(undone));
-        _emitReload(event.customerId, emit);
-        // Notify CustomerBloc to refresh (balance changed)
-        onTransactionChanged?.call();
+        _emitCustomerReload(event.customerId, emit);
+        _emitGlobalReload(emit);
       } else {
         emit(const TransactionError('No transaction to undo'));
       }
@@ -144,13 +134,14 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
   void _onRefresh(
       RefreshTransactions event, Emitter<TransactionState> emit) {
     if (event.customerId != null) {
-      _emitReload(event.customerId!, emit);
+      _emitCustomerReload(event.customerId!, emit);
     } else {
-      add(LoadAllTransactions());
+      _emitGlobalReload(emit);
     }
   }
 
-  void _emitReload(String customerId, Emitter<TransactionState> emit) {
+  /// Emit customer-scoped TransactionLoaded state.
+  void _emitCustomerReload(String customerId, Emitter<TransactionState> emit) {
     final customer = _repository.getCustomer(customerId);
     final transactions = _repository.getTransactions(customerId);
     final grouped = _repository.getGroupedTransactions(customerId);
@@ -162,6 +153,20 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
       transactions: transactions,
       groupedByDate: grouped,
       dailySummaries: summaries,
+    ));
+  }
+
+  /// Emit global AllTransactionsLoaded state for ledger/dashboard.
+  void _emitGlobalReload(Emitter<TransactionState> emit) {
+    final transactions = _repository.getAllTransactions();
+    final grouped = <String, List<TransactionModel>>{};
+    for (final txn in transactions) {
+      final key = _dateKey(txn.timestamp);
+      grouped.putIfAbsent(key, () => []).add(txn);
+    }
+    emit(AllTransactionsLoaded(
+      transactions: transactions,
+      groupedByDate: grouped,
     ));
   }
 }

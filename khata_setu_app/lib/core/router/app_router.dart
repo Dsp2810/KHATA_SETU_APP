@@ -18,6 +18,7 @@ import '../../features/ledger/presentation/pages/customer_timeline_page.dart';
 import '../../features/inventory/presentation/pages/inventory_page.dart';
 import '../../features/inventory/presentation/pages/add_product_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
+import '../../features/settings/presentation/pages/backup_page.dart';
 import '../../features/reports/presentation/pages/reports_page.dart';
 import '../../features/billing/presentation/pages/smart_billing_page.dart';
 import '../../features/upi/presentation/pages/upi_setup_page.dart';
@@ -73,10 +74,12 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: 'add',
+                parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) => const AddCustomerPage(),
               ),
               GoRoute(
                 path: ':id',
+                parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
                   return CustomerDetailsPage(customerId: id);
@@ -84,6 +87,7 @@ class AppRouter {
                 routes: [
                   GoRoute(
                     path: 'edit',
+                    parentNavigatorKey: _rootNavigatorKey,
                     builder: (context, state) {
                       final customer = state.extra as dynamic;
                       return EditCustomerPage(customer: customer);
@@ -103,6 +107,7 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: 'add',
+                parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) {
                   // Handle both Map extras (from bottom sheet) and String (backward compat)
                   String? customerId;
@@ -124,6 +129,7 @@ class AppRouter {
               ),
               GoRoute(
                 path: 'customer/:id',
+                parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
                   return CustomerTimelinePage(customerId: id);
@@ -141,6 +147,7 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: 'add',
+                parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) => const AddProductPage(),
               ),
             ],
@@ -155,7 +162,13 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: 'upi-setup',
+                parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) => const UpiSetupPage(),
+              ),
+              GoRoute(
+                path: 'backup',
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) => const BackupPage(),
               ),
             ],
           ),
@@ -179,6 +192,7 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: 'edit',
+                parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) {
                   final extra = state.extra as Map<String, dynamic>?;
                   return DailyNoteEditorPage(

@@ -167,29 +167,32 @@ class _CustomersPageState extends State<CustomersPage>
           ),
         ),
       ),
-      floatingActionButton: ScaleTransition(
-        scale: CurvedAnimation(
-            parent: _fabController, curve: Curves.elasticOut),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: AppGradients.primaryGradient,
-            borderRadius: BorderRadius.circular(AppRadius.circular),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.4),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          child: FloatingActionButton.extended(
-            onPressed: () => context.push('/customers/add'),
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            icon: const Icon(Icons.person_add_rounded, color: Colors.white),
-            label: Text(context.l10n.addCustomer,
-                style: const TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.w600)),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 80),
+        child: ScaleTransition(
+          scale: CurvedAnimation(
+              parent: _fabController, curve: Curves.elasticOut),
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: AppGradients.primaryGradient,
+              borderRadius: BorderRadius.circular(AppRadius.circular),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.4),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: FloatingActionButton.extended(
+              onPressed: () => context.push('/customers/add'),
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              icon: const Icon(Icons.person_add_rounded, color: Colors.white),
+              label: Text(context.l10n.addCustomer,
+                  style: const TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.w600)),
+            ),
           ),
         ),
       ),
@@ -306,7 +309,7 @@ class _CustomersPageState extends State<CustomersPage>
               child: GlassCard(
                 padding: const EdgeInsets.all(AppSpacing.md),
                 gradient: AppGradients.primaryGradient,
-                borderColor: Colors.white.withValues(alpha: 0.15),
+                borderColor: Colors.white.withOpacity(0.15),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -315,7 +318,7 @@ class _CustomersPageState extends State<CustomersPage>
                         Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
+                            color: Colors.white.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: const Icon(Icons.people_rounded,
@@ -330,10 +333,10 @@ class _CustomersPageState extends State<CustomersPage>
                     const SizedBox(height: AppSpacing.sm),
                     Text(context.l10n.totalCustomers,
                         style: AppTextStyles.labelMedium.copyWith(
-                            color: Colors.white.withValues(alpha: 0.9))),
+                            color: Colors.white.withOpacity(0.9))),
                     Text(context.l10n.countWithPending(owingCount),
                         style: AppTextStyles.caption.copyWith(
-                            color: Colors.white.withValues(alpha: 0.7))),
+                            color: Colors.white.withOpacity(0.7))),
                   ],
                 ),
               ),
@@ -346,7 +349,7 @@ class _CustomersPageState extends State<CustomersPage>
               child: GlassCard(
                 padding: const EdgeInsets.all(AppSpacing.md),
                 gradient: AppGradients.dangerGradient,
-                borderColor: Colors.white.withValues(alpha: 0.15),
+                borderColor: Colors.white.withOpacity(0.15),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -355,7 +358,7 @@ class _CustomersPageState extends State<CustomersPage>
                         Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
+                            color: Colors.white.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: const Icon(
@@ -378,7 +381,7 @@ class _CustomersPageState extends State<CustomersPage>
                     ),
                     Text(context.l10n.totalPending,
                         style: AppTextStyles.caption.copyWith(
-                            color: Colors.white.withValues(alpha: 0.7))),
+                            color: Colors.white.withOpacity(0.7))),
                   ],
                 ),
               ),
@@ -741,19 +744,19 @@ class _GlassFilterChip extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: isSelected
                 ? LinearGradient(
-                    colors: [chipColor, chipColor.withValues(alpha: 0.8)])
+                    colors: [chipColor, chipColor.withOpacity(0.8)])
                 : null,
             color: isSelected ? null : context.glassColor,
             borderRadius: BorderRadius.circular(AppRadius.circular),
             border: Border.all(
               color: isSelected
-                  ? chipColor.withValues(alpha: 0.3)
+                  ? chipColor.withOpacity(0.3)
                   : context.glassBorderColor,
             ),
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                        color: chipColor.withValues(alpha: 0.3),
+                        color: chipColor.withOpacity(0.3),
                         blurRadius: 8,
                         spreadRadius: -2),
                   ]
@@ -774,7 +777,7 @@ class _GlassFilterChip extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? Colors.white.withValues(alpha: 0.2)
+                      ? Colors.white.withOpacity(0.2)
                       : context.glassBorderColor,
                   borderRadius: BorderRadius.circular(10),
                 ),

@@ -13,6 +13,8 @@ const {
   syncLimiter,
   createLimiter,
 } = require('./rateLimit.middleware');
+const { uploadProductImage, uploadProductImages, uploadAttachment } = require('./upload.middleware');
+const { debugLogger, logSessionEvent } = require('./debug.middleware');
 
 module.exports = {
   // Auth middleware
@@ -47,4 +49,13 @@ module.exports = {
   reportLimiter,
   syncLimiter,
   createLimiter,
+
+  // Upload middleware
+  uploadProductImage,
+  uploadProductImages,
+  uploadAttachment,
+
+  // Debug middleware
+  debugLogger,
+  logSessionEvent,
 };

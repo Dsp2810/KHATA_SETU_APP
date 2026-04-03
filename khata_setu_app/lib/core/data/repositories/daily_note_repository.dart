@@ -1,20 +1,28 @@
+import 'dart:convert';
+
 import 'package:intl/intl.dart';
 
 import '../../utils/app_logger.dart';
 import '../datasources/daily_note_local_datasource.dart';
 import '../datasources/daily_note_remote_datasource.dart';
+import '../datasources/sync_queue_local_datasource.dart';
 import '../models/daily_note_model.dart';
+import '../models/sync_queue_item_model.dart';
 
 /// Repository for daily notes with offline-first pattern.
 ///
 /// When remote is available: fetches from API → caches locally → returns.
 /// When offline: serves from local Hive cache.
-/// Unsynced local changes are queued for later push.
+/// Unsynced local changes are enqueued via [_syncQueue] for later push.
 class DailyNoteRepository {
   final DailyNoteLocalDataSource _local;
   final DailyNoteRemoteDataSource? _remote;
+  final SyncQueueLocalDataSource? _syncQueue;
+  String _shopId = '';
 
-  DailyNoteRepository(this._local, [this._remote]);
+  DailyNoteRepository(this._local, [this._remote, this._syncQueue]);
+
+  void setShopId(String shopId) => _shopId = shopId;
 
   bool get hasRemote => _remote != null;
 
@@ -161,16 +169,26 @@ class DailyNoteRepository {
         return created;
       } catch (e) {
         AppLogger.warning('DailyNoteRepository.createNote remote failed: $e');
-        // Save locally as unsynced
+        // Save locally as unsynced + enqueue
         final unsynced = prepared.copyWith(synced: false);
         await _local.saveDailyNote(unsynced);
+        _enqueue(
+          operation: SyncOperation.create,
+          localId: unsynced.id,
+          payload: _noteToPayload(unsynced),
+        );
         return unsynced;
       }
     }
 
-    // Local only
+    // Local only + enqueue
     final localNote = prepared.copyWith(synced: false);
     await _local.saveDailyNote(localNote);
+    _enqueue(
+      operation: SyncOperation.create,
+      localId: localNote.id,
+      payload: _noteToPayload(localNote),
+    );
     return localNote;
   }
 
@@ -198,7 +216,7 @@ class DailyNoteRepository {
       }
     }
 
-    // Local fallback
+    // Local fallback + enqueue
     final existing = _local.getDailyNoteById(noteId);
     if (existing == null) throw ArgumentError('Note not found');
 
@@ -212,6 +230,11 @@ class DailyNoteRepository {
       updatedAt: DateTime.now(),
     );
     await _local.saveDailyNote(updated);
+    _enqueue(
+      operation: SyncOperation.update,
+      localId: noteId,
+      payload: updates,
+    );
     return updated;
   }
 
@@ -224,6 +247,11 @@ class DailyNoteRepository {
         await _remote.deleteNote(noteId);
       } catch (e) {
         AppLogger.warning('DailyNoteRepository.deleteNote remote failed: $e');
+        _enqueue(
+          operation: SyncOperation.delete,
+          localId: noteId,
+          payload: {},
+        );
       }
     }
     await _local.softDeleteNote(noteId);
@@ -346,4 +374,38 @@ class DailyNoteRepository {
   /// Get unsynced local notes for push to remote.
   List<DailyNoteModel> getUnsyncedNotes() =>
       _local.getUnsyncedNotes();
+
+  // ─── Queue Helper ──────────────────────────────────────────
+
+  Map<String, dynamic> _noteToPayload(DailyNoteModel n) => {
+        'title': n.title,
+        if (n.customerId != null) 'customerId': n.customerId,
+        if (n.description != null) 'description': n.description,
+        'priority': n.priority,
+        'tags': n.tags,
+        'structuredItems': n.items
+            .map((i) => {
+                  'productName': i.productName,
+                  'quantity': i.quantity,
+                  'unitPrice': i.unitPrice,
+                  if (i.unit != null) 'unit': i.unit,
+                  if (i.productId != null) 'productId': i.productId,
+                })
+            .toList(),
+      };
+
+  void _enqueue({
+    required SyncOperation operation,
+    required String localId,
+    required Map<String, dynamic> payload,
+  }) {
+    if (_syncQueue == null) return;
+    _syncQueue.add(SyncQueueItemModel(
+      entityType: SyncEntityType.dailyNote,
+      operation: operation,
+      shopId: _shopId,
+      localId: localId,
+      payloadJson: jsonEncode(payload),
+    ));
+  }
 }

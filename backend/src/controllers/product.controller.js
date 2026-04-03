@@ -1,43 +1,25 @@
-const { Product, InventoryTransaction } = require('../models');
-const { asyncHandler, AppError } = require('../middleware');
-const { auditLog } = require('../utils');
-const mongoose = require('mongoose');
+const { asyncHandler } = require('../middleware');
+const ProductService = require('../services/product.service');
 
 /**
- * Create a new product
+ * Product Controller — Thin layer delegating to ProductService.
+ * Handles HTTP I/O; business logic + sessions live in the service.
+ */
+
+/**
+ * Create a new product (with optional image upload)
  * POST /api/shops/:shopId/products
  */
 const createProduct = asyncHandler(async (req, res) => {
   const { shopId } = req.params;
-  const productData = {
-    ...req.body,
-    shopId,
-  };
-  
-  const product = await Product.create(productData);
-  
-  // Create initial stock entry if stock > 0
-  if (product.currentStock > 0) {
-    await InventoryTransaction.create({
-      shopId,
-      productId: product._id,
-      type: 'stock_in',
-      quantity: product.currentStock,
-      previousStock: 0,
-      newStock: product.currentStock,
-      unitPrice: product.purchasePrice,
-      totalValue: product.currentStock * product.purchasePrice,
-      referenceType: 'manual',
-      notes: 'Initial stock',
-      createdBy: req.userId,
-    });
+
+  let product;
+  if (req.file) {
+    product = await ProductService.createProductWithImage(shopId, req.body, req.file, req.userId);
+  } else {
+    product = await ProductService.createProduct(shopId, req.body, req.userId);
   }
-  
-  auditLog('PRODUCT_CREATED', req.userId, {
-    productId: product._id,
-    shopId,
-  });
-  
+
   res.status(201).json({
     success: true,
     message: 'Product created successfully',
@@ -51,115 +33,8 @@ const createProduct = asyncHandler(async (req, res) => {
  */
 const getProducts = asyncHandler(async (req, res) => {
   const { shopId } = req.params;
-  const {
-    search,
-    category,
-    isActive,
-    isLowStock,
-    isOutOfStock,
-    minPrice,
-    maxPrice,
-    tags,
-    sortBy,
-    sortOrder,
-    page,
-    limit,
-  } = req.query;
-  
-  // Build query
-  const query = { shopId: new mongoose.Types.ObjectId(shopId) };
-  
-  if (typeof isActive === 'boolean') {
-    query.isActive = isActive;
-  }
-  
-  if (search) {
-    query.$or = [
-      { name: { $regex: search, $options: 'i' } },
-      { localName: { $regex: search, $options: 'i' } },
-      { barcode: { $regex: search, $options: 'i' } },
-      { sku: { $regex: search, $options: 'i' } },
-    ];
-  }
-  
-  if (category) {
-    query.category = { $regex: category, $options: 'i' };
-  }
-  
-  if (isLowStock) {
-    query.$expr = { $lte: ['$currentStock', '$minStockLevel'] };
-  }
-  
-  if (isOutOfStock) {
-    query.currentStock = 0;
-  }
-  
-  if (minPrice !== undefined) {
-    query.sellingPrice = { $gte: minPrice };
-  }
-  
-  if (maxPrice !== undefined) {
-    query.sellingPrice = { ...query.sellingPrice, $lte: maxPrice };
-  }
-  
-  if (tags) {
-    const tagArray = tags.split(',').map(t => t.trim());
-    query.tags = { $in: tagArray };
-  }
-  
-  // Build sort
-  const sort = {};
-  sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
-  
-  // Pagination
-  const skip = (page - 1) * limit;
-  
-  // Execute query
-  const [products, totalCount] = await Promise.all([
-    Product.find(query)
-      .sort(sort)
-      .skip(skip)
-      .limit(limit)
-      .lean(),
-    Product.countDocuments(query),
-  ]);
-  
-  // Calculate summary
-  const summary = await Product.aggregate([
-    { $match: { shopId: new mongoose.Types.ObjectId(shopId), isActive: true } },
-    {
-      $group: {
-        _id: null,
-        totalProducts: { $sum: 1 },
-        totalStockValue: { $sum: { $multiply: ['$currentStock', '$purchasePrice'] } },
-        lowStockCount: {
-          $sum: { $cond: [{ $lte: ['$currentStock', '$minStockLevel'] }, 1, 0] },
-        },
-        outOfStockCount: {
-          $sum: { $cond: [{ $eq: ['$currentStock', 0] }, 1, 0] },
-        },
-      },
-    },
-  ]);
-  
-  res.json({
-    success: true,
-    data: {
-      products,
-      pagination: {
-        page,
-        limit,
-        totalCount,
-        totalPages: Math.ceil(totalCount / limit),
-      },
-      summary: summary[0] || {
-        totalProducts: 0,
-        totalStockValue: 0,
-        lowStockCount: 0,
-        outOfStockCount: 0,
-      },
-    },
-  });
+  const result = await ProductService.getProducts(shopId, req.query);
+  res.json({ success: true, data: result });
 });
 
 /**
@@ -168,20 +43,8 @@ const getProducts = asyncHandler(async (req, res) => {
  */
 const getProduct = asyncHandler(async (req, res) => {
   const { shopId, productId } = req.params;
-  
-  const product = await Product.findOne({
-    _id: productId,
-    shopId,
-  });
-  
-  if (!product) {
-    throw new AppError('Product not found', 404, 'PRODUCT_NOT_FOUND');
-  }
-  
-  res.json({
-    success: true,
-    data: { product },
-  });
+  const product = await ProductService.getProduct(shopId, productId);
+  res.json({ success: true, data: { product } });
 });
 
 /**
@@ -190,21 +53,8 @@ const getProduct = asyncHandler(async (req, res) => {
  */
 const getProductByBarcode = asyncHandler(async (req, res) => {
   const { shopId, barcode } = req.params;
-  
-  const product = await Product.findOne({
-    shopId,
-    barcode,
-    isActive: true,
-  });
-  
-  if (!product) {
-    throw new AppError('Product not found', 404, 'PRODUCT_NOT_FOUND');
-  }
-  
-  res.json({
-    success: true,
-    data: { product },
-  });
+  const product = await ProductService.getProductByBarcode(shopId, barcode);
+  res.json({ success: true, data: { product } });
 });
 
 /**
@@ -213,31 +63,8 @@ const getProductByBarcode = asyncHandler(async (req, res) => {
  */
 const updateProduct = asyncHandler(async (req, res) => {
   const { shopId, productId } = req.params;
-  
-  // Don't allow direct stock updates through this endpoint
-  delete req.body.currentStock;
-  
-  const product = await Product.findOneAndUpdate(
-    { _id: productId, shopId },
-    req.body,
-    { new: true, runValidators: true }
-  );
-  
-  if (!product) {
-    throw new AppError('Product not found', 404, 'PRODUCT_NOT_FOUND');
-  }
-  
-  auditLog('PRODUCT_UPDATED', req.userId, {
-    productId,
-    shopId,
-    updates: Object.keys(req.body),
-  });
-  
-  res.json({
-    success: true,
-    message: 'Product updated successfully',
-    data: { product },
-  });
+  const product = await ProductService.updateProduct(shopId, productId, req.body, req.userId);
+  res.json({ success: true, message: 'Product updated successfully', data: { product } });
 });
 
 /**
@@ -246,80 +73,18 @@ const updateProduct = asyncHandler(async (req, res) => {
  */
 const deleteProduct = asyncHandler(async (req, res) => {
   const { shopId, productId } = req.params;
-  
-  const product = await Product.findOneAndUpdate(
-    { _id: productId, shopId },
-    { isActive: false },
-    { new: true }
-  );
-  
-  if (!product) {
-    throw new AppError('Product not found', 404, 'PRODUCT_NOT_FOUND');
-  }
-  
-  auditLog('PRODUCT_DELETED', req.userId, { productId, shopId });
-  
-  res.json({
-    success: true,
-    message: 'Product deleted successfully',
-  });
+  await ProductService.deleteProduct(shopId, productId, req.userId);
+  res.json({ success: true, message: 'Product deleted successfully' });
 });
 
 /**
- * Adjust stock
+ * Adjust stock (atomic with session)
  * POST /api/shops/:shopId/products/:productId/stock
  */
 const adjustStock = asyncHandler(async (req, res) => {
   const { shopId, productId } = req.params;
-  const { type, quantity, unitPrice, notes, batchNumber, expiryDate, supplierName } = req.body;
-  
-  const product = await Product.findOne({ _id: productId, shopId });
-  
-  if (!product) {
-    throw new AppError('Product not found', 404, 'PRODUCT_NOT_FOUND');
-  }
-  
-  const transaction = await InventoryTransaction.create({
-    shopId,
-    productId,
-    type,
-    quantity,
-    previousStock: product.currentStock,
-    newStock: product.currentStock, // Will be updated in pre-save
-    unitPrice: unitPrice || product.purchasePrice,
-    totalValue: quantity * (unitPrice || product.purchasePrice),
-    referenceType: 'manual',
-    notes,
-    batchNumber,
-    expiryDate,
-    supplierName,
-    createdBy: req.userId,
-  });
-  
-  // Reload product to get updated stock
-  const updatedProduct = await Product.findById(productId);
-  
-  auditLog('STOCK_ADJUSTED', req.userId, {
-    productId,
-    shopId,
-    type,
-    quantity,
-    newStock: transaction.newStock,
-  });
-  
-  res.status(201).json({
-    success: true,
-    message: 'Stock adjusted successfully',
-    data: {
-      transaction,
-      product: {
-        id: product._id,
-        name: product.name,
-        previousStock: transaction.previousStock,
-        newStock: transaction.newStock,
-      },
-    },
-  });
+  const result = await ProductService.adjustStock(shopId, productId, req.body, req.userId);
+  res.status(201).json({ success: true, message: 'Stock adjusted successfully', data: result });
 });
 
 /**
@@ -328,32 +93,8 @@ const adjustStock = asyncHandler(async (req, res) => {
  */
 const getStockHistory = asyncHandler(async (req, res) => {
   const { shopId, productId } = req.params;
-  const { page = 1, limit = 20 } = req.query;
-  
-  const skip = (page - 1) * limit;
-  
-  const [transactions, totalCount] = await Promise.all([
-    InventoryTransaction.find({ shopId, productId })
-      .populate('createdBy', 'name')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(parseInt(limit))
-      .lean(),
-    InventoryTransaction.countDocuments({ shopId, productId }),
-  ]);
-  
-  res.json({
-    success: true,
-    data: {
-      transactions,
-      pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        totalCount,
-        totalPages: Math.ceil(totalCount / limit),
-      },
-    },
-  });
+  const result = await ProductService.getStockHistory(shopId, productId, req.query);
+  res.json({ success: true, data: result });
 });
 
 /**
@@ -362,23 +103,8 @@ const getStockHistory = asyncHandler(async (req, res) => {
  */
 const getLowStockProducts = asyncHandler(async (req, res) => {
   const { shopId } = req.params;
-  
-  const products = await Product.find({
-    shopId,
-    isActive: true,
-    $expr: { $lte: ['$currentStock', '$minStockLevel'] },
-  })
-    .select('name localName currentStock minStockLevel reorderPoint category')
-    .sort({ currentStock: 1 })
-    .lean();
-  
-  res.json({
-    success: true,
-    data: {
-      products,
-      count: products.length,
-    },
-  });
+  const result = await ProductService.getLowStockProducts(shopId);
+  res.json({ success: true, data: result });
 });
 
 /**
@@ -387,23 +113,27 @@ const getLowStockProducts = asyncHandler(async (req, res) => {
  */
 const getCategories = asyncHandler(async (req, res) => {
   const { shopId } = req.params;
-  
-  const categories = await Product.aggregate([
-    { $match: { shopId: new mongoose.Types.ObjectId(shopId), isActive: true } },
-    { $group: { _id: '$category', count: { $sum: 1 } } },
-    { $match: { _id: { $ne: null, $ne: '' } } },
-    { $sort: { count: -1 } },
-  ]);
-  
-  res.json({
-    success: true,
-    data: {
-      categories: categories.map(c => ({
-        name: c._id,
-        count: c.count,
-      })),
-    },
-  });
+  const categories = await ProductService.getCategories(shopId);
+  res.json({ success: true, data: { categories } });
+});
+
+/**
+ * Upload product image
+ * POST /api/shops/:shopId/products/:productId/image
+ */
+const uploadProductImage = asyncHandler(async (req, res) => {
+  const { shopId, productId } = req.params;
+
+  if (!req.file) {
+    return res.status(400).json({
+      success: false,
+      message: 'No image file provided',
+      code: 'NO_FILE',
+    });
+  }
+
+  const product = await ProductService.addProductImage(shopId, productId, req.file, req.userId);
+  res.json({ success: true, message: 'Image uploaded successfully', data: { product } });
 });
 
 module.exports = {
@@ -417,4 +147,5 @@ module.exports = {
   getStockHistory,
   getLowStockProducts,
   getCategories,
+  uploadProductImage,
 };

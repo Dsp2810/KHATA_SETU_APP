@@ -14,7 +14,6 @@ import '../data/datasources/udhar_remote_datasource.dart';
 import '../data/repositories/udhar_repository.dart';
 import '../../features/settings/presentation/bloc/theme_cubit.dart';
 import '../../features/customers/presentation/bloc/customer_bloc.dart';
-import '../../features/customers/presentation/bloc/customer_event.dart';
 import '../../features/ledger/presentation/bloc/transaction_bloc.dart';
 import '../data/datasources/product_local_datasource.dart';
 import '../data/datasources/product_remote_datasource.dart';
@@ -25,8 +24,9 @@ import '../data/repositories/shop_upi_repository.dart';
 import '../../features/upi/presentation/bloc/shop_upi_cubit.dart';
 import '../../features/settings/presentation/bloc/language_cubit.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
-import '../services/sync_service.dart';
+import '../services/sync_service_v2.dart' as v2;
 import '../services/connectivity_service.dart';
+import '../data/datasources/sync_queue_local_datasource.dart';
 import '../data/datasources/daily_note_local_datasource.dart';
 import '../data/datasources/daily_note_remote_datasource.dart';
 import '../data/repositories/daily_note_repository.dart';
@@ -34,6 +34,11 @@ import '../../features/daily_notebook/presentation/bloc/daily_note_bloc.dart';
 import '../../features/home/presentation/bloc/dashboard_cubit.dart';
 import '../data/datasources/notification_local_datasource.dart';
 import '../../features/notifications/presentation/bloc/notification_bloc.dart';
+import '../../features/sync/presentation/bloc/sync_cubit.dart';
+import '../../features/settings/presentation/bloc/backup_cubit.dart';
+import '../services/drive_service.dart';
+import '../services/backup_service.dart';
+import '../services/restore_service.dart';
 
 final getIt = GetIt.instance;
 
@@ -49,7 +54,9 @@ Future<void> configureDependencies() async {
   } else {
     flutterSecureStorage = const FlutterSecureStorage(
       aOptions: AndroidOptions(encryptedSharedPreferences: true),
-      iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock_this_device),
+      iOptions: IOSOptions(
+        accessibility: KeychainAccessibility.first_unlock_this_device,
+      ),
     );
   }
   getIt.registerSingleton<FlutterSecureStorage>(flutterSecureStorage);
@@ -80,8 +87,28 @@ Future<void> configureDependencies() async {
   await connectivityService.init();
   getIt.registerSingleton<ConnectivityService>(connectivityService);
 
+  // Sync Queue (Hive-backed)
+  getIt.registerLazySingleton<SyncQueueLocalDataSource>(
+    () => SyncQueueLocalDataSource(),
+  );
+
+  // Sync Service v2 (queue-based)
+  getIt.registerLazySingleton<v2.SyncService>(
+    () => v2.SyncService(
+      queue: getIt<SyncQueueLocalDataSource>(),
+      connectivity: getIt<ConnectivityService>(),
+    ),
+  );
+
+  // Sync Cubit — UI state for sync banner
+  getIt.registerLazySingleton<SyncCubit>(
+    () => SyncCubit(getIt<v2.SyncService>()),
+  );
+
   // Network
-  getIt.registerLazySingleton<Dio>(() => DioClient.createDio(getIt<SecureStorageService>()));
+  getIt.registerLazySingleton<Dio>(
+    () => DioClient.createDio(getIt<SecureStorageService>()),
+  );
 
   // Register feature-specific dependencies
   await _registerFeatureDependencies();
@@ -115,9 +142,7 @@ Future<void> _registerFeatureDependencies() async {
 
 Future<void> _registerAuthDependencies() async {
   // API Service (depends on Dio)
-  getIt.registerLazySingleton<ApiService>(
-    () => ApiService(getIt<Dio>()),
-  );
+  getIt.registerLazySingleton<ApiService>(() => ApiService(getIt<Dio>()));
 
   // Auth BLoC (singleton — shared across splash, login, register)
   getIt.registerLazySingleton<AuthBloc>(
@@ -172,7 +197,7 @@ Future<void> registerRemoteDatasource(String shopId) async {
     () => UdharRemoteDataSource(api, shopId),
   );
 
-  // Re-create the repository with remote support
+  // Re-create the repository with remote + sync queue support
   if (getIt.isRegistered<UdharRepository>()) {
     getIt.unregister<UdharRepository>();
   }
@@ -180,7 +205,8 @@ Future<void> registerRemoteDatasource(String shopId) async {
     () => UdharRepository(
       getIt<UdharLocalDataSource>(),
       getIt<UdharRemoteDataSource>(),
-    ),
+      getIt<SyncQueueLocalDataSource>(),
+    )..setShopId(shopId),
   );
 
   // Hot-swap repository into existing BLoC instances (keeps widget tree intact)
@@ -188,35 +214,12 @@ Future<void> registerRemoteDatasource(String shopId) async {
   getIt<CustomerBloc>().updateRepository(udharRepo);
   getIt<TransactionBloc>().updateRepository(udharRepo);
 
-  // Wire cross-bloc refresh: when TransactionBloc mutates data, refresh CustomerBloc
-  getIt<TransactionBloc>().onTransactionChanged = () {
-    getIt<CustomerBloc>().add(RefreshCustomers());
-  };
-
-  // Sync Service — start periodic background sync
-  if (getIt.isRegistered<SyncService>()) {
-    getIt<SyncService>().dispose();
-    getIt.unregister<SyncService>();
-  }
-  final syncService = SyncService(
+  // ── New SyncService v2: wire datasources + start ──
+  final syncServiceV2 = getIt<v2.SyncService>();
+  syncServiceV2.setUdharDatasources(
     getIt<UdharLocalDataSource>(),
     getIt<UdharRemoteDataSource>(),
   );
-  getIt.registerSingleton<SyncService>(syncService);
-
-  // Start sync if online
-  if (getIt<ConnectivityService>().isOnline) {
-    syncService.startPeriodicSync();
-  }
-
-  // Listen for connectivity changes to pause/resume sync
-  getIt<ConnectivityService>().onConnectivityChanged.listen((isOnline) {
-    if (isOnline) {
-      syncService.startPeriodicSync();
-    } else {
-      syncService.stopPeriodicSync();
-    }
-  });
 
   // ── Inventory: Register remote datasource & re-create repository ──
   if (getIt.isRegistered<ProductRemoteDataSource>()) {
@@ -233,11 +236,18 @@ Future<void> registerRemoteDatasource(String shopId) async {
     () => ProductRepository(
       getIt<ProductLocalDataSource>(),
       getIt<ProductRemoteDataSource>(),
-    ),
+      getIt<SyncQueueLocalDataSource>(),
+    )..setShopId(shopId),
   );
 
   // Hot-swap repository into existing InventoryBloc
   getIt<InventoryBloc>().updateRepository(getIt<ProductRepository>());
+
+  // Wire product datasources into SyncService v2
+  syncServiceV2.setProductDatasources(
+    getIt<ProductLocalDataSource>(),
+    getIt<ProductRemoteDataSource>(),
+  );
 
   // ── Daily Notes: Register remote datasource & re-create repository ──
   if (getIt.isRegistered<DailyNoteRemoteDataSource>()) {
@@ -254,25 +264,29 @@ Future<void> registerRemoteDatasource(String shopId) async {
     () => DailyNoteRepository(
       getIt<DailyNoteLocalDataSource>(),
       getIt<DailyNoteRemoteDataSource>(),
-    ),
+      getIt<SyncQueueLocalDataSource>(),
+    )..setShopId(shopId),
   );
 
   // Hot-swap repository into existing DailyNoteBloc
   getIt<DailyNoteBloc>().updateRepository(getIt<DailyNoteRepository>());
+
+  // Wire daily note datasources into SyncService v2
+  syncServiceV2.setDailyNoteDatasources(
+    getIt<DailyNoteLocalDataSource>(),
+    getIt<DailyNoteRemoteDataSource>(),
+  );
+
+  // ── Start SyncService v2 ──
+  syncServiceV2.start();
 }
 
 Future<void> _registerLedgerDependencies() async {
   // TransactionBloc — Singleton, shares the same UdharRepository
-  getIt.registerLazySingleton<TransactionBloc>(
-    () {
-      final bloc = TransactionBloc(getIt<UdharRepository>());
-      // Wire cross-bloc: when transactions change, refresh customer list
-      bloc.onTransactionChanged = () {
-        getIt<CustomerBloc>().add(RefreshCustomers());
-      };
-      return bloc;
-    },
-  );
+  getIt.registerLazySingleton<TransactionBloc>(() {
+    final bloc = TransactionBloc(getIt<UdharRepository>());
+    return bloc;
+  });
 }
 
 Future<void> _registerInventoryDependencies() async {
@@ -322,14 +336,31 @@ Future<void> _registerDailyNoteDependencies() async {
 
   // BLoC — Singleton so all pages share the same instance
   getIt.registerLazySingleton<DailyNoteBloc>(
-    () => DailyNoteBloc(
-      noteRepository: getIt<DailyNoteRepository>(),
-    ),
+    () => DailyNoteBloc(noteRepository: getIt<DailyNoteRepository>()),
   );
 }
 
 Future<void> _registerSettingsDependencies() async {
   // ThemeCubit is registered in configureDependencies() since it's needed at app start
+
+  // Google Drive Backup services
+  getIt.registerLazySingleton<DriveService>(
+    () => DriveService(getIt<FlutterSecureStorage>()),
+  );
+  getIt.registerLazySingleton<BackupService>(
+    () => BackupService(getIt<FlutterSecureStorage>()),
+  );
+  getIt.registerLazySingleton<RestoreService>(() => RestoreService());
+
+  // BackupCubit — factory so each navigation creates fresh state
+  getIt.registerFactory<BackupCubit>(
+    () => BackupCubit(
+      driveService: getIt<DriveService>(),
+      backupService: getIt<BackupService>(),
+      restoreService: getIt<RestoreService>(),
+      localStorage: getIt<LocalStorageService>(),
+    ),
+  );
 }
 
 Future<void> _registerNotificationDependencies() async {
@@ -340,8 +371,6 @@ Future<void> _registerNotificationDependencies() async {
 
   // BLoC — Singleton so badge count is shared across app
   getIt.registerLazySingleton<NotificationBloc>(
-    () => NotificationBloc(
-      dataSource: getIt<NotificationLocalDataSource>(),
-    ),
+    () => NotificationBloc(dataSource: getIt<NotificationLocalDataSource>()),
   );
 }

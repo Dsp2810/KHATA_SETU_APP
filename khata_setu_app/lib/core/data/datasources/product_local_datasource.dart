@@ -2,6 +2,7 @@ import 'package:hive/hive.dart';
 
 import '../models/product_model.dart';
 import '../hive_initializer.dart';
+import '../../utils/inventory_rules.dart';
 
 /// Local data source for product/inventory operations via Hive.
 class ProductLocalDataSource {
@@ -25,8 +26,9 @@ class ProductLocalDataSource {
 
   ProductModel? getProductByBarcode(String barcode) {
     try {
-      return _productBox.values
-          .firstWhere((p) => p.barcode == barcode && p.isActive);
+      return _productBox.values.firstWhere(
+        (p) => p.barcode == barcode && p.isActive,
+      );
     } catch (_) {
       return null;
     }
@@ -37,28 +39,30 @@ class ProductLocalDataSource {
     if (q.isEmpty) return getAllProducts();
 
     return _productBox.values
-        .where((p) =>
-            p.isActive &&
-            (p.name.toLowerCase().contains(q) ||
-                (p.localName?.toLowerCase().contains(q) ?? false) ||
-                (p.sku?.toLowerCase().contains(q) ?? false) ||
-                (p.barcode?.contains(q) ?? false) ||
-                p.category.toLowerCase().contains(q)))
+        .where(
+          (p) =>
+              p.isActive &&
+              (p.name.toLowerCase().contains(q) ||
+                  (p.localName?.toLowerCase().contains(q) ?? false) ||
+                  (p.sku?.toLowerCase().contains(q) ?? false) ||
+                  (p.barcode?.contains(q) ?? false) ||
+                  p.category.toLowerCase().contains(q)),
+        )
         .toList()
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
   }
 
   List<ProductModel> getProductsByCategory(String category) {
     return _productBox.values
-        .where((p) =>
-            p.isActive && p.category.toLowerCase() == category.toLowerCase())
+        .where(
+          (p) =>
+              p.isActive && p.category.toLowerCase() == category.toLowerCase(),
+        )
         .toList();
   }
 
   List<ProductModel> getLowStockProducts() {
-    return _productBox.values
-        .where((p) => p.isActive && p.isLowStock)
-        .toList();
+    return _productBox.values.where((p) => p.isActive && p.isLowStock).toList();
   }
 
   List<ProductModel> getOutOfStockProducts() {
@@ -91,11 +95,35 @@ class ProductLocalDataSource {
     }
   }
 
+  /// Set stock to an exact value (pre-calculated by InventoryRules).
+  Future<void> setStock(
+    String productId,
+    double newStock, {
+    bool isRestock = false,
+  }) async {
+    final product = getProductById(productId);
+    if (product == null) return;
+    product.currentStock = newStock;
+    product.lastRestockedAt = isRestock
+        ? DateTime.now()
+        : product.lastRestockedAt;
+    product.synced = false;
+    await product.save();
+  }
+
+  /// Adjust stock using InventoryRules as single source of truth.
   Future<void> adjustStock(String productId, double quantityChange) async {
     final product = getProductById(productId);
     if (product == null) return;
-    product.currentStock = (product.currentStock + quantityChange).clamp(0, double.infinity);
-    product.lastRestockedAt = quantityChange > 0 ? DateTime.now() : product.lastRestockedAt;
+    final newStock = InventoryRules.calculateStockAfterAdjustment(
+      currentStock: product.currentStock,
+      type: quantityChange >= 0 ? 'add' : 'remove',
+      quantity: quantityChange.abs(),
+    );
+    product.currentStock = newStock;
+    product.lastRestockedAt = quantityChange > 0
+        ? DateTime.now()
+        : product.lastRestockedAt;
     product.synced = false;
     await product.save();
   }
@@ -126,8 +154,6 @@ class ProductLocalDataSource {
   }
 
   List<ProductModel> getUnsyncedProducts() {
-    return _productBox.values
-        .where((p) => !p.synced && p.isActive)
-        .toList();
+    return _productBox.values.where((p) => !p.synced && p.isActive).toList();
   }
 }
