@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/constants/constants.dart';
 import '../../../../core/network/api_service.dart';
 import '../../../../core/services/connectivity_service.dart';
 import '../../../../core/storage/secure_storage.dart';
@@ -173,6 +174,29 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(const AuthLoading());
+
+    if (DemoConfig.isDemoMode) {
+      final demoUser = User(
+        id: 'demo_user',
+        name: 'Demo Shopkeeper',
+        phone: event.phone.trim(),
+        role: 'owner',
+        isActive: true,
+        isPhoneVerified: true,
+        createdAt: DateTime.now(),
+      );
+
+      await _storage.saveAccessToken('demo_access_token');
+      await _storage.saveRefreshToken('demo_refresh_token');
+      await _storage.saveUserId(demoUser.id);
+      await _storage.saveUserName(demoUser.name);
+      await _storage.saveUserPhone(demoUser.phone);
+      await _storage.saveActiveShopId('demo_shop_1');
+      await _storage.saveActiveShopName('KhataSetu Demo Store');
+
+      emit(AuthenticatedOffline(demoUser));
+      return;
+    }
 
     try {
       final data = await _api.login(

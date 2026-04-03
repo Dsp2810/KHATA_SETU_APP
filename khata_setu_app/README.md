@@ -1,17 +1,48 @@
-# khata_setu
+# KhataSetu Flutter App
 
-A new Flutter project.
+Flutter frontend for KhataSetu (digital udhar/ledger + inventory app).
 
-## Getting Started
+## Run Locally
 
-This project is a starting point for a Flutter application.
+```bash
+flutter pub get
+flutter run -d chrome
+```
 
-A few resources to get you started if this is your first Flutter project:
+## Live Demo Mode (Resume Ready)
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+This mode enables smooth showcase login and optional APK download CTA on web.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```bash
+flutter run -d chrome \
+	--dart-define=ENV=prod \
+	--dart-define=DEMO_MODE=true \
+	--dart-define=APK_DOWNLOAD_URL=https://your-domain.com/khatasetu-demo.apk
+```
+
+## Build for Deployment
+
+### Web (Release)
+
+```bash
+flutter build web --release \
+	--dart-define=ENV=prod \
+	--dart-define=DEMO_MODE=true \
+	--dart-define=APK_DOWNLOAD_URL=https://your-domain.com/khatasetu-demo.apk
+```
+
+Output: `build/web/`
+
+### Android APK (Release)
+
+```bash
+flutter build apk --release --dart-define=ENV=prod --dart-define=DEMO_MODE=true
+```
+
+Output: `build/app/outputs/flutter-apk/app-release.apk`
+
+## Demo Flags
+
+- `ENV=prod` → Uses production backend URL
+- `DEMO_MODE=true` → Enables demo login flow
+- `APK_DOWNLOAD_URL=<https-url>` → Shows “Download APK” button on web login page

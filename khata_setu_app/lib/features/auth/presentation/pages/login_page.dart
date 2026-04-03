@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/constants.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -69,6 +71,14 @@ class _LoginPageState extends State<LoginPage>
     }
   }
 
+  Future<void> _launchApkDownload() async {
+    final uri = Uri.tryParse(DemoConfig.apkDownloadUrl);
+    if (uri == null) return;
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -126,18 +136,32 @@ class _LoginPageState extends State<LoginPage>
                               index: 1,
                               child: _buildWelcomeText(isDark),
                             ),
+                            if (DemoConfig.isDemoMode) ...[
+                              const SizedBox(height: AppSpacing.md),
+                              AnimatedListItem(
+                                index: 2,
+                                child: _buildDemoModeHint(isDark),
+                              ),
+                            ],
                             const SizedBox(height: AppSpacing.xl),
 
                             // Login form card
                             AnimatedListItem(
-                              index: 2,
+                              index: 3,
                               child: _buildFormCard(isDark, isLoading),
                             ),
+                            if (kIsWeb && DemoConfig.apkDownloadUrl.isNotEmpty) ...[
+                              const SizedBox(height: AppSpacing.md),
+                              AnimatedListItem(
+                                index: 4,
+                                child: _buildApkDownloadButton(),
+                              ),
+                            ],
                             const SizedBox(height: AppSpacing.xl),
 
                             // Register link
                             AnimatedListItem(
-                              index: 3,
+                              index: 5,
                               child: _buildRegisterLink(),
                             ),
                           ],
@@ -221,6 +245,53 @@ class _LoginPageState extends State<LoginPage>
           textAlign: TextAlign.center,
         ),
       ],
+    );
+  }
+
+  Widget _buildDemoModeHint(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: isDark ? 0.16 : 0.08),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.25),
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.smart_display_rounded,
+            size: 18,
+            color: AppColors.primary,
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  context.l10n.demoModeActive,
+                  style: AppTextStyles.labelLarge.copyWith(
+                    color: context.textPrimaryColor,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  context.l10n.demoModeHint,
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.grey600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -371,7 +442,9 @@ class _LoginPageState extends State<LoginPage>
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                context.l10n.loginButton,
+                                DemoConfig.isDemoMode
+                                    ? context.l10n.loginDemoMode
+                                    : context.l10n.loginButton,
                                 style: AppTextStyles.button.copyWith(
                                   color: AppColors.white,
                                   fontSize: 16,
@@ -385,6 +458,27 @@ class _LoginPageState extends State<LoginPage>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildApkDownloadButton() {
+    return OutlinedButton.icon(
+      onPressed: _launchApkDownload,
+      icon: const Icon(Icons.android_rounded, size: 18),
+      label: Text('${context.l10n.download} APK'),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: AppColors.primary,
+        side: BorderSide(
+          color: AppColors.primary.withValues(alpha: 0.4),
+        ),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.md,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+        ),
       ),
     );
   }

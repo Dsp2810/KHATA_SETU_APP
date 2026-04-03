@@ -199,6 +199,39 @@ flutter run -d <device_id>     # Mobile / Desktop
 
 > Update API base URL in `lib/core/network/dio_client.dart` to match your backend.
 
+### Resume / Live Demo Build (Web + APK)
+
+Use demo mode for frictionless showcase (no real account needed):
+
+```bash
+cd khata_setu_app
+flutter run -d chrome \
+  --dart-define=ENV=prod \
+  --dart-define=DEMO_MODE=true \
+  --dart-define=APK_DOWNLOAD_URL=https://your-domain.com/khatasetu-demo.apk
+```
+
+Build production web demo:
+
+```bash
+cd khata_setu_app
+flutter build web --release \
+  --dart-define=ENV=prod \
+  --dart-define=DEMO_MODE=true \
+  --dart-define=APK_DOWNLOAD_URL=https://your-domain.com/khatasetu-demo.apk
+```
+
+Build Android APK for sharing:
+
+```bash
+cd khata_setu_app
+flutter build apk --release --dart-define=ENV=prod --dart-define=DEMO_MODE=true
+```
+
+Output artifacts:
+- Web: `khata_setu_app/build/web/`
+- APK: `khata_setu_app/build/app/outputs/flutter-apk/app-release.apk`
+
 ---
 
 ## Engineering Highlights
