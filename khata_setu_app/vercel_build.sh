@@ -10,6 +10,7 @@ echo "Resolving dependencies..."
 flutter pub get
 
 echo "Building Flutter Web App..."
-flutter build web --release
+flutter config --enable-web
+flutter build web --release --no-pub -v
 
 echo "Build complete!"

@@ -1,4 +1,7 @@
 {
+  "buildCommand": "./vercel_build.sh",
+  "outputDirectory": "build/web",
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD ./",
   "rewrites": [
     {
       "source": "/(.*)",
