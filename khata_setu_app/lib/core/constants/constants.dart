@@ -99,6 +99,22 @@ class AppConstants {
   static const int maxProductsPerShop = 50000;
 }
 
+class DemoConfig {
+  DemoConfig._();
+
+  /// Enables frictionless demo login flow.
+  ///
+  /// Example:
+  /// flutter run -d chrome --dart-define=DEMO_MODE=true --dart-define=ENV=prod
+  static const bool isDemoMode = bool.fromEnvironment('DEMO_MODE', defaultValue: false);
+
+  /// Optional direct APK download URL for web demo builds.
+  ///
+  /// Example:
+  /// --dart-define=APK_DOWNLOAD_URL=https://example.com/khatasetu.apk
+  static const String apkDownloadUrl = String.fromEnvironment('APK_DOWNLOAD_URL', defaultValue: '');
+}
+
 class RouteConstants {
   RouteConstants._();
 
