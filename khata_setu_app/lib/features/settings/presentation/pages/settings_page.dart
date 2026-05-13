@@ -18,6 +18,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/animations.dart';
 import '../../../../core/utils/app_formatter.dart';
 import '../../../../core/data/hive_initializer.dart';
+import '../../../../core/services/onesignal_service.dart';
 import '../../../../core/services/sync_service.dart';
 import '../../../../core/services/connectivity_service.dart';
 import '../bloc/theme_cubit.dart';
@@ -183,15 +184,46 @@ class _SettingsPageState extends State<SettingsPage> {
                           title: context.l10n.pushNotifications,
                           subtitle: context.l10n.pushNotificationsSubtitle,
                           value: _notificationsEnabled,
-                          onChanged: (v) {
+                          onChanged: (v) async {
                             setState(() => _notificationsEnabled = v);
                             _localStorage.setBool('notifications_enabled', v);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(context.l10n.notificationsComingSoon),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
+
+                            try {
+                              if (v) {
+                                // Enable push notifications
+                                await getIt<OneSignalService>().enableNotifications();
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Push notifications enabled'),
+                                      backgroundColor: AppColors.success,
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                }
+                              } else {
+                                // Disable push notifications
+                                await getIt<OneSignalService>().disableNotifications();
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Push notifications disabled'),
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                }
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Error: ${e.toString()}'),
+                                    backgroundColor: AppColors.error,
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              }
+                            }
                           },
                         ),
                       ]),

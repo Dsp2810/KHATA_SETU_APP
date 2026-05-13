@@ -425,6 +425,39 @@ const registerFcmToken = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * Reset password
+ * POST /api/auth/reset-password
+ */
+const resetPassword = asyncHandler(async (req, res) => {
+  const { phone, otp, newPassword } = req.body;
+
+  const user = await User.findOne({ phone });
+  if (!user) {
+    throw new AppError('Phone number not registered', 404, 'USER_NOT_FOUND');
+  }
+
+  // Verify OTP
+  const isValidOtp = await verifyOTP(phone, otp);
+  if (!isValidOtp) {
+    throw new AppError('Invalid or expired OTP', 400, 'INVALID_OTP');
+  }
+
+  // Update password (assumes pre-save hook handles hashing)
+  user.password = newPassword;
+  await user.save();
+
+  // Optionally invalidate refresh tokens so user is logged out everywhere
+  await RefreshToken.deleteMany({ userId: user._id });
+
+  auditLog(user._id, 'RESET_PASSWORD', 'User reset password successfully');
+
+  res.json({
+    success: true,
+    message: 'Password reset successfully',
+  });
+});
+
 module.exports = {
   register,
   login,
@@ -436,4 +469,5 @@ module.exports = {
   changePassword,
   getMe,
   registerFcmToken,
+  resetPassword,
 };

@@ -39,6 +39,7 @@ import '../../features/settings/presentation/bloc/backup_cubit.dart';
 import '../services/drive_service.dart';
 import '../services/backup_service.dart';
 import '../services/restore_service.dart';
+import '../services/onesignal_service.dart';
 
 final getIt = GetIt.instance;
 
@@ -86,6 +87,11 @@ Future<void> configureDependencies() async {
   final connectivityService = ConnectivityService();
   await connectivityService.init();
   getIt.registerSingleton<ConnectivityService>(connectivityService);
+
+  // OneSignal Service - Push notifications
+  getIt.registerLazySingleton<OneSignalService>(
+    () => OneSignalService(),
+  );
 
   // Sync Queue (Hive-backed)
   getIt.registerLazySingleton<SyncQueueLocalDataSource>(

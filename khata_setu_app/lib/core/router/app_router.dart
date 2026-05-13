@@ -6,6 +6,7 @@ import '../utils/app_formatter.dart';
 import '../../features/auth/presentation/pages/splash_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
+import '../../features/auth/presentation/pages/forgot_password_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/home/presentation/pages/dashboard_page.dart';
 import '../../features/customers/presentation/pages/customers_page.dart';
@@ -46,6 +47,10 @@ class AppRouter {
       GoRoute(
         path: RouteConstants.login,
         builder: (context, state) => const LoginPage(),
+      ),
+      GoRoute(
+        path: '/forgot-password',
+        builder: (context, state) => const ForgotPasswordPage(),
       ),
       GoRoute(
         path: RouteConstants.register,

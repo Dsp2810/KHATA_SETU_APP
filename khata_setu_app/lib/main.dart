@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'core/di/injection.dart';
 import 'core/data/hive_initializer.dart';
+import 'core/services/onesignal_service.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
@@ -45,6 +46,9 @@ void main() async {
 
   // Initialize dependency injection
   await configureDependencies();
+
+  // Initialize OneSignal for push notifications
+  await getIt<OneSignalService>().init();
 
   // Set preferred orientations
   await SystemChrome.setPreferredOrientations([

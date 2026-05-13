@@ -15,6 +15,7 @@ const {
   verifyOtpSchema,
   refreshTokenSchema,
   changePasswordSchema,
+  resetPasswordSchema,
 } = require('../validators');
 
 // Public routes
@@ -51,6 +52,12 @@ router.post(
   validate(refreshTokenSchema),
   verifyRefreshToken,
   authController.refreshAccessToken
+);
+
+router.post(
+  '/reset-password',
+  validate(resetPasswordSchema),
+  authController.resetPassword
 );
 
 // Protected routes

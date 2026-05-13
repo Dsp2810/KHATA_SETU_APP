@@ -310,10 +310,7 @@ class _LoginPageState extends State<LoginPage>
               ),
               TextButton(
                 onPressed: () {
-                  // TODO: Implement forgot password
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(context.l10n.comingSoon)),
-                  );
+                  context.push('/forgot-password');
                 },
                 style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
