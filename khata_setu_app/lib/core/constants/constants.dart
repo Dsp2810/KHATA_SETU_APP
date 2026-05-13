@@ -1,8 +1,9 @@
 class ApiConstants {
   ApiConstants._();
 
-  // Environment flag - pass via: flutter run --dart-define=ENV=prod
-  static const String _env = String.fromEnvironment('ENV', defaultValue: 'dev');
+  // Environment flag - pass via: flutter run --dart-define=ENV=prod or env=prod
+  static const String _env = String.fromEnvironment('ENV',
+      defaultValue: String.fromEnvironment('env', defaultValue: 'dev'));
 
   // Base URLs per environment
   static const String _devBaseUrl = 'http://192.168.0.122:3000/api/v1';
