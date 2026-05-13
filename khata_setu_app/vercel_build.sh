@@ -11,6 +11,6 @@ flutter pub get
 
 echo "Building Flutter Web App..."
 flutter config --enable-web
-flutter build web --release --no-pub -v
+flutter build web --release --dart-define=ENV=prod --no-pub -v
 
 echo "Build complete!"
